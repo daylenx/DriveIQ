@@ -1,0 +1,235 @@
+Prompt:
+
+Build the next iteration of DriveIQ (Expo + React Native + Firebase Auth + Firestore).
+Manual odometer updates only (NO GPS or trip tracking). Firebase is already configured.
+
+CORE NEW FEATURES TO IMPLEMENT
+1️⃣ Plans & Paywall UI (Preview Only – NO REAL PAYMENTS)
+
+Implement plan logic and UI only. Do not integrate real payments yet.
+
+Plans:
+
+Free (Personal): 1 vehicle
+
+Personal Pro (Lifetime): up to 5 vehicles — $9.99 one-time (display only)
+
+Fleet Small: up to 10 vehicles — $19.99/month (display only)
+
+Fleet Medium: up to 25 vehicles — $39.99/month (display only)
+
+Fleet Large: up to 50 vehicles — $69.99/month (display only)
+
+Requirements:
+
+Create a reusable UpgradeModal and PricingScreen
+
+Add feature flags:
+
+PAYWALLS_ENABLED = false
+
+DEV_PREVIEW_PAYWALL = true
+
+When paywalls are disabled:
+
+show upgrade UI
+
+allow user to continue anyway
+
+2️⃣ Post-Signup Usage Intent Screen
+
+After first signup/login only, show:
+
+“How will you use DriveIQ?”
+
+Personal (myself / family)
+
+Fleet (business / multiple drivers)
+
+Save to Firestore users/{uid}:
+
+accountType: "personal" | "fleet"
+plan: "free"
+vehicleLimit: 1
+isLifetime: false
+createdAt
+updatedAt
+
+
+Skip this screen on future logins once saved.
+
+3️⃣ Soft Plan Gating (Vehicle Limits)
+
+Implement reusable logic:
+
+canAddVehicle(userPlan, currentVehicleCount)
+→ { allowed, reason, suggestedPlan }
+
+
+Rules:
+
+Free personal: 1 vehicle
+
+Personal Pro: up to 5 vehicles
+
+Fleet plans: 10 / 25 / 50 vehicles
+
+When limit is exceeded:
+
+Show UpgradeModal
+
+If DEV_PREVIEW_PAYWALL = true, allow “Continue anyway”
+
+4️⃣ Simulated Upgrades (DEV ONLY)
+
+Inside UpgradeModal (dev builds only):
+
+“Simulate Upgrade” button
+
+Updates Firestore user doc:
+
+plan
+vehicleLimit
+isLifetime
+updatedAt
+
+
+Add a Settings option:
+
+“Reset to Free (Dev Only)”
+
+🛠️ NEW FEATURE: UNKNOWN / ESTIMATED MAINTENANCE BASELINE
+Problem to solve:
+
+Users may not remember:
+
+last service odometer
+
+last service date
+
+The app must still work accurately and honestly.
+
+5️⃣ Maintenance Setup Logic (Per Task)
+
+When initializing or editing a maintenance task (oil change, brakes, etc.), support 3 modes:
+
+A) Mileage-based
+
+User knows last odometer:
+
+lastServiceOdometer
+
+calculate nextDueOdometer
+
+B) Time-based
+
+User knows last date:
+
+lastServiceDate
+
+calculate nextDueDate
+
+C) Unknown / Estimated (IMPORTANT)
+
+If user does NOT know either:
+
+Ask:
+
+“I don’t remember / not sure”
+
+Set a baseline from today
+
+Mark it as estimated
+
+Store:
+
+baselineType: "confirmed" | "estimated"
+
+
+If estimated:
+
+Next due is calculated from today
+
+Do NOT mark task overdue immediately
+
+Show UI copy:
+
+“Estimated baseline — set last service for accurate tracking.”
+
+Optional helper:
+
+“About how long ago?”
+
+1 month
+
+2–3 months
+
+6 months
+
+1 year+
+
+If selected:
+
+Backdate lastServiceDate
+
+Still mark baselineType = "estimated"
+
+6️⃣ Status Handling Rules
+
+Statuses remain:
+
+ok
+
+due_soon
+
+overdue
+
+But:
+
+If no confirmed baseline exists:
+
+status defaults to ok
+
+show informational banner instead of warnings
+
+Never scare users with “OVERDUE” when data is unknown.
+
+7️⃣ Firestore Data Expectations
+
+maintenanceTasks/{taskId}
+
+lastServiceOdometer?: number
+lastServiceDate?: timestamp
+baselineType: "confirmed" | "estimated"
+nextDueOdometer?: number
+nextDueDate?: timestamp
+status: "ok" | "due_soon" | "overdue"
+
+
+Firestore collections & fields must be created automatically by the app.
+
+🚫 EXPLICIT NON-GOALS
+
+No GPS tracking
+
+No real payments
+
+No StoreKit / RevenueCat
+
+No hard paywalls yet
+
+✅ DELIVERABLES
+
+UsageIntentScreen
+
+PricingScreen
+
+UpgradeModal
+
+Maintenance baseline setup flow
+
+DEV-only simulate upgrade & reset
+
+Clean Firestore writes with no undefined values
+
+Clear UI copy for estimated vs confirmed maintenance

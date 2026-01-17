@@ -1,0 +1,69 @@
+entrypoint = "README.md"
+modules = ["nodejs-22"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+deploymentTarget = "cloudrun"
+build = ["sh", "-c", "npm run expo:static:build && npm run server:build"]
+run = ["npm", "run", "server:prod"]
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3000
+
+[env]
+PORT = "5000"
+
+[agent]
+stack = "EXPO"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start dev servers"
+
+[[workflows.workflow]]
+name = "Start dev servers"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run all:dev"
+waitForPort = 8081
+ensurePreviewReachable = "/status"
+
+[userenv]
+
+[userenv.shared]
+apiKey = "AIzaSyApKlsRilN5AGauoWfukCL5Zb4PW39Vmyk"
+authDomain = "driveiq-3ade4.firebaseapp.com"
+projectId = "driveiq-3ade4"
+messagingSenderId = "932909380820"
+appId = "1:932909380820:web:e9853263f13be1af4ef741"
+measurementId = "G-E2T4Z2GTMM"
+storageBucket = "driveiq-3ade4.firebasestorage.com"
+EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyApKlsRilN5AGauoWfukCL5Zb4PW39Vmyk"
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "driveiq-3ade4.firebaseapp.com"
+EXPO_PUBLIC_FIREBASE_PROJECT_ID = "driveiq-3ade4"
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = "driveiq-3ade4.firebasestorage.app"
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "932909380820"
+EXPO_PUBLIC_FIREBASE_APP_ID = "1:932909380820:web:e9853263f13be1af4ef741"
+EXPO_PUBLIC_REVENUECAT_API_KEY = "test_fQTjUDEzFySunQwQRVSJdOExQPM"
+

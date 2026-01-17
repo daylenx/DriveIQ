@@ -1,0 +1,28 @@
+WARN  [2025-12-20T12:00:05.956Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x4c7e2a8f transport errored. Name: undefined Message: undefined
+ ERROR  The action 'NAVIGATE' with payload {"name":"EditTask","params":{"task":{"milesInterval":5000,"createdAt":1766224908334,"name":"Oil Change","lastServiceDate":1766227931700,"description":"Replace engine oil and filter to maintain engine lubrication and prevent wear.","lastServiceOdometer":90001,"userId":"3j1aH49rrDWLvQtv9jrn3HUtvz53","typeId":"oil_change","monthsInterval":6,"nextDueOdometer":95001,"nextDueDate":1781779931700,"updatedAt":1766227938392,"id":"mje4phddi0iq8dvkv","vehicleId":"mje4phdavp0zim6nv","category":"Engine"}}} was not handled by any navigator.
+
+Do you have a screen named 'EditTask'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+ ERROR  The action 'NAVIGATE' with payload {"name":"EditTask","params":{"task":{"milesInterval":5000,"createdAt":1766224908334,"name":"Oil Change","lastServiceDate":1766227931700,"description":"Replace engine oil and filter to maintain engine lubrication and prevent wear.","lastServiceOdometer":90001,"userId":"3j1aH49rrDWLvQtv9jrn3HUtvz53","typeId":"oil_change","monthsInterval":6,"nextDueOdometer":95001,"nextDueDate":1781779931700,"updatedAt":1766227938392,"id":"mje4phddi0iq8dvkv","vehicleId":"mje4phdavp0zim6nv","category":"Engine"}}} was not handled by any navigator.
+
+Do you have a screen named 'EditTask'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.
+ ERROR  The action 'NAVIGATE' with payload {"name":"EditTask","params":{"task":{"name":"Engine Air Filter","lastServiceOdometer":90002,"id":"mje4phde3nqaj7uha","userId":"3j1aH49rrDWLvQtv9jrn3HUtvz53","updatedAt":1766227961118,"description":"Replace engine air filter to ensure clean air intake for optimal combustion.","milesInterval":15000,"lastServiceDate":1766227957802,"nextDueDate":1797331957802,"vehicleId":"mje4phdavp0zim6nv","nextDueOdometer":105002,"category":"Engine","monthsInterval":12,"createdAt":1766224908334,"typeId":"air_filter"}}} was not handled by any navigator.
+
+Do you have a screen named 'EditTask'?
+
+If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/nesting-navigators#navigating-to-a-screen-in-a-nested-navigator.
+
+If you're using conditional rendering, navigation will happen automatically and you shouldn't navigate manually, see.
+
+This is a development-only warning and won't be shown in production.

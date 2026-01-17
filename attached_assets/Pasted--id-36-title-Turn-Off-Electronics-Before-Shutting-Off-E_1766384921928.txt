@@ -1,0 +1,77 @@
+[
+  {
+    "id": 36,
+    "title": "Turn Off Electronics Before Shutting Off Engine",
+    "tip": "Turning off the A/C, radio, and lights before shutting off your car can reduce strain on the battery during the next startup."
+  },
+  {
+    "id": 37,
+    "title": "Use Floor Mats to Protect Carpets",
+    "tip": "Rubber or all-weather floor mats help protect your car’s interior from dirt, salt, and spills."
+  },
+  {
+    "id": 38,
+    "title": "Close Doors Gently",
+    "tip": "Slamming doors can weaken hinges, seals, and even cause window or latch issues over time."
+  },
+  {
+    "id": 39,
+    "title": "Inspect Windshield for Chips",
+    "tip": "Small chips can turn into full cracks. Catch them early and use a DIY repair kit if needed."
+  },
+  {
+    "id": 40,
+    "title": "Keep a Tire Gauge in Your Glove Box",
+    "tip": "Having a simple analog or digital tire pressure gauge helps you monitor tires on the go — not just at gas stations."
+  },
+  {
+    "id": 41,
+    "title": "Don't Ride the Clutch",
+    "tip": "Keeping your foot on the clutch pedal wears it out faster. Use neutral at stops instead."
+  },
+  {
+    "id": 42,
+    "title": "Leave a Gap When Parking in the Sun",
+    "tip": "Cracking windows slightly when parked in hot weather can reduce cabin heat and protect the dashboard."
+  },
+  {
+    "id": 43,
+    "title": "Avoid Overloading Your Vehicle",
+    "tip": "Carrying too much weight reduces fuel efficiency and puts extra strain on suspension and brakes."
+  },
+  {
+    "id": 44,
+    "title": "Check Your Registration and Inspection Stickers",
+    "tip": "Make it a habit to glance at these monthly so you don't get caught driving expired."
+  },
+  {
+    "id": 45,
+    "title": "Secure Loose Items in the Trunk",
+    "tip": "Rolling tools or gear can damage the interior and distract you while driving."
+  },
+  {
+    "id": 46,
+    "title": "Don't Let Leaves or Debris Sit on the Car",
+    "tip": "Leaves trap moisture and acids that can stain paint or clog drainage around the windshield."
+  },
+  {
+    "id": 47,
+    "title": "Clean Interior Vents with a Brush or Can of Air",
+    "tip": "Dust and allergens build up in vents. A soft brush or compressed air can help keep airflow clean."
+  },
+  {
+    "id": 48,
+    "title": "Inspect Your License Plate and Tag Lights",
+    "tip": "A burned-out plate light can result in a ticket. It’s a quick visual check you can do monthly."
+  },
+  {
+    "id": 49,
+    "title": "Turn Your Wheels Toward the Curb on Hills",
+    "tip": "Helps prevent rollaways and reduces transmission stress when parked on a slope."
+  },
+  {
+    "id": 50,
+    "title": "Use Parking Brake Regularly",
+    "tip": "Engaging the parking brake helps keep the cable in working order — even on flat ground."
+  }
+]

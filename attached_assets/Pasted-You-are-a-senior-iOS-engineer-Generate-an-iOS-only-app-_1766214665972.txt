@@ -1,0 +1,207 @@
+You are a senior iOS engineer. Generate an iOS-only app written in Swift 5 with SwiftUI, named DriveIQ, intended to be copied into an Xcode SwiftUI App project.
+
+The app helps users track vehicle maintenance using manual odometer updates. Use Firebase Auth and Firestore for authentication and cloud data storage. Do not implement any GPS, location tracking, motion detection, or trip tracking.
+
+🔐 Authentication
+
+Use Firebase Auth (email + password).
+
+On first launch, show login/register screens.
+
+After login, all user data is scoped to their uid.
+
+🚘 Vehicles
+
+Users can add one or more vehicles.
+
+Vehicle fields:
+
+id
+
+nickname
+
+year
+
+make
+
+model
+
+trim?
+
+vin? (store only; no lookup yet)
+
+currentOdometer
+
+createdAt, updatedAt
+
+UI:
+
+Vehicle list screen
+
+Add / Edit vehicle screen
+
+Set an “Active Vehicle” (used by the dashboard)
+
+🔢 Manual Odometer Updates (Core)
+
+Users can update their vehicle’s current odometer manually.
+
+Updating the odometer recalculates maintenance reminders immediately.
+
+The dashboard displays messages like:
+
+“Oil change in 2,342 miles”
+
+“Brake pads overdue by 120 miles”
+
+🛠️ Maintenance Engine
+
+Include a local JSON file: MaintenanceDefaults.json
+
+Each default maintenance item includes:
+
+typeId
+
+name
+
+category
+
+milesInterval
+
+monthsInterval
+
+description
+
+When a vehicle is created:
+
+Copy defaults into per-vehicle maintenance tasks stored in Firestore so users can customize intervals per vehicle.
+
+Logic:
+
+Maintenance due is based on miles OR months (whichever comes first).
+
+Dashboard should show:
+
+Overdue
+
+Due Soon (≤ 500 miles or ≤ 14 days)
+
+Next Up
+
+🧾 Service Logs
+
+Users can mark a maintenance item as completed and create a service log:
+
+date
+
+odometer
+
+notes
+
+cost (optional)
+
+When a log is saved:
+
+Update lastServiceOdometer and lastServiceDate
+
+Recompute nextDueOdometer and nextDueDate
+
+💡 Tip of the Day
+
+Include Tips.json with 30+ tips.
+
+Show a “Tip of the Day” card at the top of the dashboard.
+
+Tip selection logic:
+
+dayOfYear % tips.count
+
+Add a Settings toggle: show/hide tips.
+
+🎨 Themes
+
+Implement Light, Dark, and Pink theme modes.
+
+Theme preference stored in Firestore (fallback to UserDefaults).
+
+Apply globally (background, text, accent).
+
+Settings screen includes theme selector.
+
+📁 App Structure (MVVM)
+
+Provide a folder tree:
+
+Models/
+ViewModels/
+Views/
+Services/
+Repositories/
+Resources/
+
+
+Use ObservableObject view models.
+
+Put Firestore calls in repository classes.
+
+Add /// doc comments to explain important logic (maintenance calculations, data flow).
+
+🧭 UI Navigation
+
+Use a TabView with:
+
+Dashboard
+
+Vehicles
+
+Maintenance
+
+Logs
+
+Settings
+
+Dashboard must include:
+
+Active vehicle selector
+
+Tip of the Day card
+
+Maintenance cards (Overdue / Due Soon / Next Up)
+
+🔥 Firestore Requirements
+
+Define Firestore collections like:
+
+users/{uid}
+
+vehicles/{vehicleId}
+
+maintenanceTasks/{taskId}
+
+maintenanceLogs/{logId}
+
+Ensure every record is scoped with userId or uid so queries only return the current user’s data.
+
+Provide:
+
+Firestore schema
+
+Example Firestore security rules:
+
+users can only read/write their own docs
+
+📦 Deliverables
+
+Full folder structure
+
+Complete Swift code for each file (copy-paste ready)
+
+Full MaintenanceDefaults.json
+
+Full Tips.json
+
+Firestore schema + security rules
+
+A short Xcode Setup Checklist explaining Firebase setup (Auth + Firestore)
+
+Keep the UI clean and modern. Avoid external dependencies other than Firebase.

@@ -1,0 +1,75 @@
+1) Gentle odometer update reminder (non-annoying)
+
+Add a soft reminder system that encourages users to keep their odometer up to date without feeling pushy.
+
+Behavior:
+
+Track the date of the last odometer update for each vehicle.
+
+If a vehicle’s odometer hasn’t been updated in 14 days, show a small, non-blocking banner on that vehicle’s dashboard.
+
+The tone should be helpful and calm, not urgent or alarming.
+
+Example copy:
+“Quick check-in: update your odometer to keep reminders accurate.”
+
+Include a clear call-to-action such as “Update now.”
+
+Allow users to snooze the reminder for 7, 14, or 30 days.
+
+Do not show the reminder more than once per week.
+
+Allow users to disable odometer reminders entirely from settings.
+
+This reminder should never block app usage and should never be framed as an error.
+
+2) Maintenance cost summary (premium feature)
+
+Add a maintenance cost summary feature that builds on existing service logs.
+
+Behavior:
+
+Maintenance logs may include an optional cost field.
+
+Add a “Cost Summary” section per vehicle that shows:
+
+Total amount spent on maintenance
+
+Optional breakdown by category (engine, tires, brakes, etc.)
+
+A short list of recent maintenance costs
+
+Treat this as a Pro feature:
+
+Free users can see a locked preview explaining the benefit.
+
+Example copy:
+“See how much you’ve spent on maintenance with DriveIQ Pro.”
+
+Core maintenance logging should remain available to all users.
+
+Include a developer-only way to simulate Pro access for testing.
+
+The goal is to highlight long-term value and insights without blocking core functionality.
+
+3) Fleet wording polish (important UX fix)
+
+Update wording related to adding people to a fleet account to sound professional and business-appropriate.
+
+Change:
+
+Replace all instances of “Invite family member” with clearer, more neutral language.
+
+New wording:
+
+Use “Invite member” as the default.
+
+Optionally use “Invite team member” on fleet-specific screens.
+
+Rules:
+
+Personal accounts should not show invite options.
+
+Fleet accounts should consistently use professional wording across buttons, headers, modals, and empty states.
+
+This is a wording and UI polish change only; underlying logic remains the same.

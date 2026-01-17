@@ -1,0 +1,388 @@
+[
+  {
+    "typeId": "oil_change",
+    "name": "Oil Change",
+    "category": "Engine",
+    "milesInterval": 5000,
+    "monthsInterval": 6,
+    "description": "Replace engine oil and filter to maintain engine lubrication and prevent wear.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "oil_change_semi",
+    "name": "Oil Change",
+    "category": "Engine",
+    "milesInterval": 15000,
+    "monthsInterval": 3,
+    "description": "Replace engine oil and filter. Commercial diesel engines require more frequent service due to heavy use.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "tire_rotation",
+    "name": "Tire Rotation",
+    "category": "Tires",
+    "milesInterval": 7500,
+    "monthsInterval": 6,
+    "description": "Rotate tires to ensure even wear and extend tire life.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "tire_inspection_semi",
+    "name": "Tire Inspection",
+    "category": "Tires",
+    "milesInterval": 10000,
+    "monthsInterval": 1,
+    "description": "Inspect all tires for wear, damage, and proper inflation. Check tread depth and sidewalls.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "air_filter",
+    "name": "Engine Air Filter",
+    "category": "Engine",
+    "milesInterval": 15000,
+    "monthsInterval": 12,
+    "description": "Replace engine air filter to ensure clean air intake for optimal combustion."
+  },
+  {
+    "typeId": "cabin_filter",
+    "name": "Cabin Air Filter",
+    "category": "Interior",
+    "milesInterval": 15000,
+    "monthsInterval": 12,
+    "description": "Replace cabin air filter to maintain clean air inside the vehicle."
+  },
+  {
+    "typeId": "brake_pads",
+    "name": "Brake Pads",
+    "category": "Brakes",
+    "milesInterval": 35000,
+    "monthsInterval": 36,
+    "description": "Inspect and replace brake pads to ensure safe stopping power.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "brake_rotors",
+    "name": "Brake Rotors",
+    "category": "Brakes",
+    "milesInterval": 70000,
+    "monthsInterval": 60,
+    "description": "Inspect and resurface or replace brake rotors for optimal braking.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "transmission_fluid",
+    "name": "Transmission Fluid",
+    "category": "Transmission",
+    "milesInterval": 60000,
+    "monthsInterval": 48,
+    "description": "Replace transmission fluid to ensure smooth gear shifts and prevent wear.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "transmission_fluid_semi",
+    "name": "Transmission Fluid",
+    "category": "Transmission",
+    "milesInterval": 100000,
+    "monthsInterval": 24,
+    "description": "Replace transmission fluid in manual or automated manual transmission.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "coolant_flush",
+    "name": "Coolant Flush",
+    "category": "Cooling",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Flush and replace engine coolant to prevent overheating and corrosion."
+  },
+  {
+    "typeId": "spark_plugs",
+    "name": "Spark Plugs",
+    "category": "Engine",
+    "milesInterval": 60000,
+    "monthsInterval": 48,
+    "description": "Replace spark plugs to maintain proper engine ignition and fuel efficiency.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "serpentine_belt",
+    "name": "Serpentine Belt",
+    "category": "Engine",
+    "milesInterval": 60000,
+    "monthsInterval": 48,
+    "description": "Inspect and replace serpentine belt to prevent accessory failure."
+  },
+  {
+    "typeId": "timing_belt",
+    "name": "Timing Belt",
+    "category": "Engine",
+    "milesInterval": 90000,
+    "monthsInterval": 84,
+    "description": "Replace timing belt to prevent catastrophic engine damage.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "battery",
+    "name": "Battery",
+    "category": "Electrical",
+    "milesInterval": 50000,
+    "monthsInterval": 48,
+    "description": "Test and replace battery to ensure reliable starting."
+  },
+  {
+    "typeId": "power_steering_fluid",
+    "name": "Power Steering Fluid",
+    "category": "Steering",
+    "milesInterval": 75000,
+    "monthsInterval": 60,
+    "description": "Replace power steering fluid to maintain smooth steering operation.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "brake_fluid",
+    "name": "Brake Fluid",
+    "category": "Brakes",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Flush and replace brake fluid to maintain braking performance.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "differential_fluid",
+    "name": "Differential Fluid",
+    "category": "Drivetrain",
+    "milesInterval": 60000,
+    "monthsInterval": 48,
+    "description": "Replace differential fluid to ensure proper lubrication of gears.",
+    "vehicleTypes": ["car", "pickup"]
+  },
+  {
+    "typeId": "wiper_blades",
+    "name": "Wiper Blades",
+    "category": "Visibility",
+    "milesInterval": 15000,
+    "monthsInterval": 12,
+    "description": "Replace wiper blades for clear visibility in rain and snow."
+  },
+  {
+    "typeId": "fuel_filter",
+    "name": "Fuel Filter",
+    "category": "Fuel System",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Replace fuel filter to ensure clean fuel delivery to the engine."
+  },
+  {
+    "typeId": "alignment",
+    "name": "Wheel Alignment",
+    "category": "Suspension",
+    "milesInterval": 15000,
+    "monthsInterval": 12,
+    "description": "Check and adjust wheel alignment to prevent uneven tire wear."
+  },
+  {
+    "typeId": "ac_service",
+    "name": "A/C Service",
+    "category": "Climate",
+    "milesInterval": 50000,
+    "monthsInterval": 36,
+    "description": "Inspect A/C system and recharge refrigerant as needed."
+  },
+  {
+    "typeId": "suspension_inspection",
+    "name": "Suspension Inspection",
+    "category": "Suspension",
+    "milesInterval": 50000,
+    "monthsInterval": 36,
+    "description": "Inspect shocks, struts, and suspension components for wear."
+  },
+  {
+    "typeId": "transfer_case_fluid",
+    "name": "Transfer Case Fluid",
+    "category": "Drivetrain",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Replace transfer case fluid in 4WD and AWD vehicles to ensure smooth operation.",
+    "vehicleTypes": ["pickup"]
+  },
+  {
+    "typeId": "front_differential_fluid",
+    "name": "Front Differential Fluid",
+    "category": "Drivetrain",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Replace front differential fluid in 4WD vehicles for proper lubrication.",
+    "vehicleTypes": ["pickup"]
+  },
+  {
+    "typeId": "u_joints",
+    "name": "U-Joint Inspection",
+    "category": "Drivetrain",
+    "milesInterval": 30000,
+    "monthsInterval": 24,
+    "description": "Inspect universal joints for wear and lubricate as needed.",
+    "vehicleTypes": ["pickup"]
+  },
+  {
+    "typeId": "trailer_hitch",
+    "name": "Trailer Hitch Inspection",
+    "category": "Towing",
+    "milesInterval": 15000,
+    "monthsInterval": 12,
+    "description": "Inspect trailer hitch, wiring, and brake controller for proper operation.",
+    "vehicleTypes": ["pickup"]
+  },
+  {
+    "typeId": "def_fluid",
+    "name": "DEF Fluid",
+    "category": "Emissions",
+    "milesInterval": 5000,
+    "monthsInterval": 1,
+    "description": "Refill Diesel Exhaust Fluid (DEF) to maintain emissions compliance.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "dpf_regen",
+    "name": "DPF Regeneration Check",
+    "category": "Emissions",
+    "milesInterval": 25000,
+    "monthsInterval": 3,
+    "description": "Monitor and ensure proper DPF regeneration cycles for diesel particulate filter.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "air_brake_inspection",
+    "name": "Air Brake Inspection",
+    "category": "Brakes",
+    "milesInterval": 25000,
+    "monthsInterval": 3,
+    "description": "Inspect air brake system including compressor, tanks, valves, and chambers.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "brake_adjustment",
+    "name": "Brake Adjustment",
+    "category": "Brakes",
+    "milesInterval": 15000,
+    "monthsInterval": 2,
+    "description": "Adjust slack adjusters and check brake stroke for proper operation.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "air_dryer_service",
+    "name": "Air Dryer Service",
+    "category": "Air System",
+    "milesInterval": 50000,
+    "monthsInterval": 12,
+    "description": "Replace air dryer desiccant cartridge to prevent moisture in air system.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "fifth_wheel",
+    "name": "Fifth Wheel Service",
+    "category": "Coupling",
+    "milesInterval": 25000,
+    "monthsInterval": 3,
+    "description": "Lubricate fifth wheel plate and inspect locking mechanism.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "kingpin_inspection",
+    "name": "Kingpin Inspection",
+    "category": "Coupling",
+    "milesInterval": 50000,
+    "monthsInterval": 6,
+    "description": "Measure kingpin wear and inspect for damage or deformation.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "dot_annual_inspection",
+    "name": "DOT Annual Inspection",
+    "category": "Compliance",
+    "milesInterval": 100000,
+    "monthsInterval": 12,
+    "description": "Complete DOT annual inspection as required by FMCSA regulations.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "drive_axle_service",
+    "name": "Drive Axle Service",
+    "category": "Drivetrain",
+    "milesInterval": 100000,
+    "monthsInterval": 24,
+    "description": "Change differential oil in drive axles and inspect for leaks.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "steer_axle_service",
+    "name": "Steer Axle Service",
+    "category": "Steering",
+    "milesInterval": 50000,
+    "monthsInterval": 12,
+    "description": "Inspect steering components, king pins, and lubricate tie rod ends.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "clutch_adjustment",
+    "name": "Clutch Adjustment",
+    "category": "Transmission",
+    "milesInterval": 50000,
+    "monthsInterval": 6,
+    "description": "Adjust clutch free play and inspect clutch brake for wear.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "turbo_inspection",
+    "name": "Turbocharger Inspection",
+    "category": "Engine",
+    "milesInterval": 100000,
+    "monthsInterval": 24,
+    "description": "Inspect turbocharger for shaft play, leaks, and proper boost.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "fuel_water_separator",
+    "name": "Fuel Water Separator",
+    "category": "Fuel System",
+    "milesInterval": 15000,
+    "monthsInterval": 3,
+    "description": "Drain water from fuel water separator and replace filter element.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "egr_service",
+    "name": "EGR System Service",
+    "category": "Emissions",
+    "milesInterval": 150000,
+    "monthsInterval": 36,
+    "description": "Clean or replace EGR valve and cooler to maintain emissions compliance.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "injector_service",
+    "name": "Injector Service",
+    "category": "Fuel System",
+    "milesInterval": 250000,
+    "monthsInterval": 48,
+    "description": "Test and service fuel injectors for proper spray pattern and flow.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "apu_service",
+    "name": "APU Service",
+    "category": "Auxiliary Power",
+    "milesInterval": 5000,
+    "monthsInterval": 3,
+    "description": "Change APU oil and filter, inspect belts and coolant level.",
+    "vehicleTypes": ["semi"]
+  },
+  {
+    "typeId": "trailer_brake_inspection",
+    "name": "Trailer Brake Inspection",
+    "category": "Towing",
+    "milesInterval": 25000,
+    "monthsInterval": 6,
+    "description": "Inspect trailer brake pads, drums, and electrical connections.",
+    "vehicleTypes": ["pickup"]
+  }
+]

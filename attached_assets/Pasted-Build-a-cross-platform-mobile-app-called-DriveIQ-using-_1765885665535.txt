@@ -1,0 +1,61 @@
+Build a cross-platform mobile app called DriveIQ using React Native + Expo + TypeScript and Firebase (Auth, Firestore, Storage).
+
+Features
+
+Auth
+
+Email/password sign up + login (Firebase Auth)
+
+Vehicles
+
+Users can add multiple vehicles with: year, make, model, optional trim/nickname, optional VIN, required starting odometer
+
+Store vehicles in Firestore under the user
+
+Maintenance engine
+
+Preload a default maintenance library from a local JSON file (oil, tire rotation, brakes, tires, transmission fluid, filters, coolant, spark plugs, belts, battery, alignment, etc.)
+
+Each item uses “miles OR months, whichever comes first”
+
+For each vehicle, create a per-vehicle task list copied from defaults (so the user can edit intervals per vehicle)
+
+Dashboard shows Due Soon / Overdue / Next Up with miles remaining + estimated due date
+
+Service logging
+
+User can mark a maintenance item as done and create a log with: date, odometer, notes, cost, and optional receipt photo upload to Firebase Storage
+
+When a log is created, automatically recompute next due mileage/date for that task
+
+Trips + mileage (MVP)
+
+Implement trip tracking using phone GPS speed thresholds:
+
+Start trip when speed > 7 mph for 30 seconds
+
+Record points every 10–25 meters, ignore points where accuracy > 50m
+
+End trip when speed < 2 mph for 180 seconds
+
+Compute trip distance by summing distance between points
+
+Save trips to Firestore and add trip miles to the active vehicle’s odometer
+
+Multi-vehicle: include an “Active Vehicle” selector; after trip ends show “Logged to [vehicle]. Change? Not my car?” If “Not my car”, trip is unassigned and does not affect odometer.
+
+VIN + Recall (optional)
+
+If user enters VIN, decode and fetch recalls using NHTSA APIs; show them in a Safety screen.
+
+UI
+
+Bottom tabs: Dashboard, Vehicles, Trips, Logs, Settings (+ Safety if recalls)
+
+Clean minimal UI
+
+Deliverables
+
+Provide full repo structure, Firestore schema, security rules, TypeScript types, and runnable Expo app with setup instructions.
+
+Keep trip tracking as “foreground tracking” initially (works while app is open). Add TODO notes for background/always-on tracking for later.

@@ -1,0 +1,177 @@
+[
+  {
+    "id": 1,
+    "title": "Check Your Tire Pressure",
+    "tip": "Check your tire pressure at least once a month. Properly inflated tires improve fuel economy and handling."
+  },
+  {
+    "id": 2,
+    "title": "Listen to Your Brakes",
+    "tip": "Squealing or grinding noises when braking indicate worn brake pads. Have them inspected promptly."
+  },
+  {
+    "id": 3,
+    "title": "Change Oil Regularly",
+    "tip": "Regular oil changes are the single most important maintenance item for engine longevity."
+  },
+  {
+    "id": 4,
+    "title": "Check Your Lights",
+    "tip": "Walk around your car periodically to ensure all lights are working properly - headlights, brake lights, and turn signals."
+  },
+  {
+    "id": 5,
+    "title": "Replace Wiper Blades",
+    "tip": "Replace wiper blades every 6-12 months for clear visibility in rain and snow."
+  },
+  {
+    "id": 6,
+    "title": "Monitor Coolant Levels",
+    "tip": "Check your coolant level regularly to prevent overheating. Never open a hot radiator cap."
+  },
+  {
+    "id": 7,
+    "title": "Keep Your Car Clean",
+    "tip": "Regular washing protects your paint from dirt, salt, and contaminants that can cause rust."
+  },
+  {
+    "id": 8,
+    "title": "Check Battery Terminals",
+    "tip": "Inspect battery terminals for corrosion. Clean with baking soda and water if needed."
+  },
+  {
+    "id": 9,
+    "title": "Rotate Your Tires",
+    "tip": "Rotate tires every 5,000-7,500 miles to ensure even wear and extend tire life."
+  },
+  {
+    "id": 10,
+    "title": "Replace Air Filters",
+    "tip": "A clean air filter improves engine performance and fuel economy. Check it every oil change."
+  },
+  {
+    "id": 11,
+    "title": "Warm Up Your Engine",
+    "tip": "Let your engine warm up for 30-60 seconds before driving, especially in cold weather."
+  },
+  {
+    "id": 12,
+    "title": "Check Transmission Fluid",
+    "tip": "Low or dirty transmission fluid can cause shifting problems. Check it according to your owner's manual."
+  },
+  {
+    "id": 13,
+    "title": "Inspect Belts and Hoses",
+    "tip": "Look for cracks, fraying, or bulges in belts and hoses. Replace them before they fail."
+  },
+  {
+    "id": 14,
+    "title": "Keep Fuel Tank Above Quarter",
+    "tip": "Keeping your fuel tank above quarter full helps prevent fuel pump wear and moisture buildup."
+  },
+  {
+    "id": 15,
+    "title": "Check Power Steering Fluid",
+    "tip": "Difficulty steering or unusual noises may indicate low power steering fluid."
+  },
+  {
+    "id": 16,
+    "title": "Test Your Battery",
+    "tip": "Have your battery tested before winter. Cold weather can reduce battery capacity by 50%."
+  },
+  {
+    "id": 17,
+    "title": "Park in Shade",
+    "tip": "Parking in shade helps protect your interior from UV damage and keeps the cabin cooler."
+  },
+  {
+    "id": 18,
+    "title": "Use the Right Fuel",
+    "tip": "Use the fuel grade recommended in your owner's manual. Premium isn't always better."
+  },
+  {
+    "id": 19,
+    "title": "Check Brake Fluid",
+    "tip": "Brake fluid absorbs moisture over time. Have it flushed every 2-3 years for optimal braking."
+  },
+  {
+    "id": 20,
+    "title": "Inspect Tread Depth",
+    "tip": "Use the penny test: insert a penny head-first. If you can see all of Lincoln's head, it's time for new tires."
+  },
+  {
+    "id": 21,
+    "title": "Replace Cabin Air Filter",
+    "tip": "A clean cabin air filter improves A/C performance and interior air quality."
+  },
+  {
+    "id": 22,
+    "title": "Check Wheel Alignment",
+    "tip": "If your car pulls to one side or the steering wheel is off-center, have your alignment checked."
+  },
+  {
+    "id": 23,
+    "title": "Don't Ignore Warning Lights",
+    "tip": "Dashboard warning lights indicate potential problems. Have them diagnosed promptly."
+  },
+  {
+    "id": 24,
+    "title": "Keep Records",
+    "tip": "Maintaining detailed service records helps track maintenance and increases resale value."
+  },
+  {
+    "id": 25,
+    "title": "Check Spare Tire",
+    "tip": "Don't forget to check your spare tire's pressure. A flat spare won't help in an emergency."
+  },
+  {
+    "id": 26,
+    "title": "Clean Your Headlights",
+    "tip": "Yellowed or hazy headlights reduce visibility. Use a headlight restoration kit to clear them up."
+  },
+  {
+    "id": 27,
+    "title": "Wax Your Car",
+    "tip": "Waxing your car every few months protects the paint and makes washing easier."
+  },
+  {
+    "id": 28,
+    "title": "Check Exhaust System",
+    "tip": "Unusual noises or a drop in fuel economy may indicate exhaust system problems."
+  },
+  {
+    "id": 29,
+    "title": "Replace Timing Belt",
+    "tip": "If your car has a timing belt, replace it at the recommended interval to prevent engine damage."
+  },
+  {
+    "id": 30,
+    "title": "Lubricate Door Hinges",
+    "tip": "Apply lubricant to door hinges and locks periodically to prevent squeaking and binding."
+  },
+  {
+    "id": 31,
+    "title": "Check Emergency Kit",
+    "tip": "Keep an emergency kit in your car with jumper cables, flashlight, first aid supplies, and water."
+  },
+  {
+    "id": 32,
+    "title": "Drive Smoothly",
+    "tip": "Smooth acceleration and braking reduce wear on your vehicle and improve fuel economy."
+  },
+  {
+    "id": 33,
+    "title": "Avoid Short Trips",
+    "tip": "Short trips don't allow the engine to reach optimal temperature, which can cause moisture buildup."
+  },
+  {
+    "id": 34,
+    "title": "Check Suspension",
+    "tip": "Bouncy ride or uneven tire wear may indicate worn shocks or struts. Have them inspected."
+  },
+  {
+    "id": 35,
+    "title": "Protect Your Interior",
+    "tip": "Use sunshades and seat covers to protect your interior from sun damage and wear."
+  },
+]

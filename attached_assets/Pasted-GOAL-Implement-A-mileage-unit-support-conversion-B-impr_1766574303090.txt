@@ -1,0 +1,203 @@
+GOAL
+
+Implement (A) mileage unit support + conversion, (B) improved odometer flow with typo/decrease warnings, and (C) Fleet accounts with multi-user roles + shared dashboard using Firestore data modeling and secure access patterns.
+
+A) MILES ↔ KILOMETERS UPDATE (PER VEHICLE)
+Requirements
+
+Add odometerUnit to each vehicle:
+
+odometerUnit: "mi" | "km"  // default "mi"
+
+
+During vehicle creation / onboarding:
+
+Ask user: “Odometer unit: Miles / Kilometers”
+
+Save to vehicle doc.
+
+Allow changing unit later in Vehicle Settings:
+
+Add “Change odometer unit” setting per vehicle.
+
+When changed, you MUST convert all relevant values for that vehicle:
+
+vehicle.currentOdometer
+
+all maintenanceTasks fields: lastServiceOdometer, nextDueOdometer (if present)
+
+all maintenanceLogs fields: odometer (if present)
+
+odometerEntries odometer (if used)
+
+Provide confirm modal: “This will convert all saved values. Continue?”
+
+Conversion constants:
+
+mi → km: 1.60934
+
+km → mi: 0.621371
+
+Round to integer for odometer fields (keep costs as decimals).
+
+Ensure UI consistently displays unit suffix (mi/km).
+
+B) ODOMETER FLOW UPDATE + WARNINGS (TYPO PROTECTION)
+Requirements
+
+New “Update Odometer” flow (button on vehicle dashboard):
+
+Input: integer
+
+Save as new odometerEntries doc and update vehicle.currentOdometer.
+
+Validation + warnings:
+
+Block negative values.
+
+If new odometer is LESS than last saved odometer:
+
+show warning modal: “This is lower than your last reading. Possible typo. Save anyway?”
+
+If new odometer jumps by an unusually large amount (configurable):
+
+threshold default: +5,000 units since last update
+
+show warning modal: “This is a big jump. Save anyway?”
+
+Add “Save anyway” and “Edit” options.
+
+Prevent double submit:
+
+disable Save button while saving
+
+show loading state
+
+Firestore writes must never include undefined (use null/omit/empty string).
+
+C) FLEET FEATURES (MULTI-USER + ROLES + SHARED DASHBOARD)
+Overview
+
+Add Fleet accounts that can have multiple users with roles:
+
+Admin: manage vehicles + members + view full fleet dashboard + export
+
+Driver: update odometer + create service logs; limited access
+
+Data Model (Firestore)
+
+Implement these collections (choose either top-level or subcollections, but be consistent):
+
+fleets/{fleetId}
+
+name: string
+createdAt: timestamp
+createdBy: uid
+plan: "fleet_small" | "fleet_medium" | "fleet_large"
+vehicleLimit: 10 | 25 | 50
+
+
+fleetMembers/{memberId} (or fleets/{fleetId}/members/{uid})
+
+fleetId: string
+userId: uid
+role: "admin" | "driver"
+createdAt: timestamp
+
+
+Update vehicles to support either personal or fleet ownership:
+vehicles/{vehicleId}
+
+ownerType: "personal" | "fleet"
+userId?: uid            // personal owner
+fleetId?: string        // fleet owner
+nickname, year, make, model, currentOdometer, odometerUnit, createdAt, updatedAt, isArchived
+assignedDriverIds?: uid[]   // optional for v1 (or single assignedDriverId)
+
+
+Maintenance tasks and logs must support fleetId when applicable:
+
+maintenanceTasks/{taskId} include:
+
+ownerType: "personal" | "fleet"
+userId?: uid
+fleetId?: string
+vehicleId: string
+status, intervals, lastService, nextDue, baselineType, etc.
+
+
+maintenanceLogs/{logId} include:
+
+ownerType: "personal" | "fleet"
+userId: uid             // who performed the log
+fleetId?: string
+vehicleId: string
+taskId: string
+serviceDate, odometer, notes?, cost?, createdAt
+
+Fleet Onboarding / UX
+
+After signup, if user selects accountType = "fleet":
+
+Create a fleet (admin becomes owner)
+
+Save user profile:
+
+accountType: "fleet"
+fleetId: createdFleetId
+role: "admin"
+
+
+Add “Invite Member” (Admin only):
+
+For MVP: invite by email → user enters same email at signup → app links them.
+
+Store pending invites in:
+fleetInvites/{inviteId}:
+
+fleetId, email, role, invitedAt, acceptedAt?
+
+
+When invited user logs in, match email → create fleetMember record.
+
+(If too hard, implement “Add member by UID” dev-only tool first.)
+
+Shared Fleet Dashboard (Admin)
+
+Create /fleet screen (or tab) showing:
+
+Fleet name
+
+Vehicle count (non-archived)
+
+Overdue tasks count
+
+Due soon tasks count
+
+“Needs attention” vehicle list (vehicles with overdue/due soon tasks)
+
+Recent logs (last 10)
+
+Implementation notes:
+
+For MVP with ≤50 vehicles, query tasks and compute counts client-side.
+
+Optimize later with fleetSummary doc (optional).
+
+Role Enforcement (App Logic)
+
+Admin can: add/edit/archive vehicles, invite/remove members, view all logs/tasks
+
+Driver can: update odometer for assigned vehicles, create service logs, view tasks for assigned vehicles
+
+Show/hide UI actions based on role.
+
+Firestore Security (IMPORTANT)
+
+Implement secure rules so users can only access:
+
+personal data where userId == request.auth.uid
+
+fleet data only if they are a fleet member of that fleetId
+
+drivers limited writes (e.g., can update odometer + create logs but not change intervals or delete vehicles)
