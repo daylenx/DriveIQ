@@ -1,3 +1,42 @@
+/**
+ * FleetDashboardScreen.tsx - Comprehensive Fleet Management Dashboard
+ * 
+ * PURPOSE:
+ * Provides fleet admins and managers with a comprehensive view of their fleet operations.
+ * This is the central hub for monitoring vehicles, drivers, maintenance, and costs.
+ * 
+ * FEATURES (6 tabbed views):
+ * 1. Overview: Key metrics, recent activity, urgent alerts
+ * 2. Vehicles: Full vehicle inventory with status and assignments
+ * 3. Drivers: Team members, roles, and their assigned vehicles
+ * 4. Logs: Complete maintenance history across all fleet vehicles
+ * 5. Costs: Financial analytics with monthly/YTD breakdowns
+ * 6. Reminders: Upcoming and overdue maintenance alerts
+ * 
+ * ASSUMPTIONS:
+ * - Only fleet members can access this screen (enforced by navigation)
+ * - Fleet admins have additional capabilities (export, management)
+ * - All data is filtered by fleet ID to ensure proper isolation
+ * 
+ * GUARDRAILS:
+ * - Export button only visible to fleet admins (isFleetAdmin check)
+ * - All vehicle/log/task data is filtered by fleet.id
+ * - Shows empty state if no fleet is found
+ * - Export loading state prevents double-clicks
+ * 
+ * EXTERNAL INTEGRATIONS:
+ * - Google Sheets API (via server): Export fleet data for external analysis
+ * - FleetContext: Provides fleet membership and admin status
+ * - DataContext: Provides vehicles, logs, and maintenance tasks
+ * 
+ * NON-OBVIOUS RULES:
+ * - FleetMember uses 'displayName' not 'name'
+ * - FleetMember uses 'createdAt' not 'joinedAt' for timestamp
+ * - Vehicle uses 'nickname' not 'name'
+ * - ServiceLog uses 'odometer' not 'odometerAtService'
+ * - Cost calculations use 'cost' field which may be undefined (use 0 as default)
+ */
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, FlatList, Alert, Linking, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

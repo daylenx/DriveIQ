@@ -1,3 +1,35 @@
+/**
+ * SOSScreen.tsx - Emergency Roadside Assistance Feature
+ * 
+ * PURPOSE:
+ * Provides users with a quick way to find nearby tow trucks or mechanics
+ * during vehicle emergencies. This is a critical safety feature.
+ * 
+ * ASSUMPTIONS:
+ * - User has a mobile device with location capabilities
+ * - User may be stressed during an emergency, so UI must be simple and clear
+ * - Location permission will only be requested when explicitly needed (privacy-first)
+ * - The active vehicle context helps tailor search results (e.g., semi-trucks need heavy-duty services)
+ * 
+ * GUARDRAILS:
+ * - Location permission is ONLY requested when user taps "Find Nearby" - NO background tracking
+ * - Falls back gracefully to sample data if Google Places API is unavailable
+ * - Handles permission denial with clear guidance to Settings
+ * - Validates phone numbers exist before showing call button
+ * - Platform-specific handling for web vs native (tel: links, Settings access)
+ * 
+ * EXTERNAL INTEGRATIONS:
+ * - expo-location: For requesting foreground location permission and getting GPS coordinates
+ * - Google Places API (via server): Searches for nearby tow trucks and mechanics
+ * - Native phone dialer: tel: URL scheme for tap-to-call
+ * - Share API: For sharing location via Apple Maps and Google Maps links
+ * 
+ * NON-OBVIOUS RULES:
+ * - Vehicle type affects search query: semi-trucks get "heavy duty" appended for tow searches
+ * - Linking.openSettings() is NOT available on web and may fail on some Android variants
+ * - Share API behavior differs between platforms (iOS uses share sheet, Android varies)
+ */
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -48,8 +80,13 @@ export default function SOSScreen() {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
+  // Default to 'car' if no active vehicle - most common case
   const vehicleType: VehicleType = activeVehicle?.vehicleType || 'car';
 
+  /**
+   * Maps internal vehicle type codes to user-friendly labels
+   * Used for display purposes in the UI
+   */
   const getVehicleTypeLabel = (type: VehicleType): string => {
     switch (type) {
       case 'semi': return 'Semi-Truck';
@@ -58,17 +95,35 @@ export default function SOSScreen() {
     }
   };
 
+  /**
+   * MAJOR FUNCTION: handleFindNearby
+   * 
+   * Requests location permission, gets current position, and searches for nearby services.
+   * This is the core functionality of the SOS feature.
+   * 
+   * Flow:
+   * 1. Request foreground location permission (one-time, not background)
+   * 2. If denied, show warning and optionally redirect to Settings
+   * 3. Get current GPS coordinates with balanced accuracy (faster than high accuracy)
+   * 4. Build search query based on service type and vehicle type
+   * 5. Call server API which proxies to Google Places
+   * 6. Handle errors gracefully with user-friendly messages
+   */
   const handleFindNearby = useCallback(async (serviceType: ServiceType) => {
     setSearchError(null);
     setIsSearching(true);
     setNearbyPlaces([]);
 
     try {
+      // Request permission only when user explicitly wants to search
+      // This respects user privacy - no background or preemptive location access
       const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
         setPermissionDenied(true);
         setIsSearching(false);
+        // Only offer Settings redirect if permission was permanently denied
+        // and we're not on web (Linking.openSettings doesn't work on web)
         if (!canAskAgain && Platform.OS !== 'web') {
           Alert.alert(
             'Location Required',
@@ -81,6 +136,7 @@ export default function SOSScreen() {
                   try {
                     await Linking.openSettings();
                   } catch (e) {
+                    // openSettings may not be available on all devices
                   }
                 }
               },
@@ -92,6 +148,8 @@ export default function SOSScreen() {
 
       setPermissionDenied(false);
       
+      // Balanced accuracy is faster than High/Highest and sufficient for finding nearby businesses
+      // We don't need meter-level precision for searching a 10-mile radius
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
@@ -102,6 +160,8 @@ export default function SOSScreen() {
       };
       setUserLocation(coords);
 
+      // Tailor search query based on service type and vehicle type
+      // Semi-trucks need specialized heavy-duty towing and truck repair shops
       const searchQuery = serviceType === 'tow' 
         ? `tow truck ${vehicleType === 'semi' ? 'heavy duty' : ''}`
         : `auto mechanic ${vehicleType === 'semi' ? 'truck repair' : 'car repair'}`;
@@ -128,6 +188,10 @@ export default function SOSScreen() {
     }
   }, [vehicleType]);
 
+  /**
+   * Initiates a phone call using the native dialer
+   * Uses tel: URL scheme which works across iOS and Android
+   */
   const handleCall = useCallback((phone: string) => {
     const phoneUrl = Platform.select({
       ios: `tel:${phone}`,
@@ -139,7 +203,15 @@ export default function SOSScreen() {
     });
   }, []);
 
+  /**
+   * MAJOR FUNCTION: handleShareLocation
+   * 
+   * Shares the user's current location via the native share sheet.
+   * Includes links to both Apple Maps and Google Maps for maximum compatibility.
+   * Also includes vehicle info to help the person receiving the location.
+   */
   const handleShareLocation = useCallback(async () => {
+    // Reuse cached location if available, otherwise request fresh location
     if (!userLocation) {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -165,10 +237,15 @@ export default function SOSScreen() {
     }
   }, [userLocation]);
 
+  /**
+   * Creates and shares a message with map links
+   * Includes both Apple Maps (for iOS users) and Google Maps (universal) links
+   */
   const shareLocationWithCoords = async (coords: { lat: number; lng: number }) => {
     const appleMapsUrl = `https://maps.apple.com/?ll=${coords.lat},${coords.lng}&q=My%20Location`;
     const googleMapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
 
+    // Include vehicle info to help identify which vehicle needs assistance
     const vehicleInfo = activeVehicle 
       ? `\n\nVehicle: ${activeVehicle.year} ${activeVehicle.make} ${activeVehicle.model}`
       : '';
@@ -244,6 +321,7 @@ export default function SOSScreen() {
           )}
         </View>
       </View>
+      {/* Only show call button if phone number is available */}
       {item.phone && (
         <Pressable
           style={[styles.callButton, { backgroundColor: theme.success }]}
@@ -285,6 +363,7 @@ export default function SOSScreen() {
           </View>
         </View>
 
+        {/* Find Nearby button only appears after service selection */}
         {selectedService && (
           <Pressable
             style={[
