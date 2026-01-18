@@ -46,6 +46,7 @@
     "expo-web-browser": "~15.0.9",
     "express": "^4.21.2",
     "firebase": "^12.7.0",
+    "googleapis": "^148.0.0",
     "http-proxy-middleware": "^3.0.5",
     "pg": "^8.16.3",
     "react": "19.1.0",
