@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Feather } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
@@ -28,7 +27,6 @@ export default function FleetDashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const tabBarHeight = useBottomTabBarHeight();
   const { fleet, fleetMembers, isFleetAdmin } = useFleet();
   const { vehicles, serviceLogs, dashboardTasks } = useData();
 
@@ -127,7 +125,7 @@ export default function FleetDashboardScreen() {
         ))}
       </ScrollView>
 
-      <View style={{ flex: 1, paddingBottom: tabBarHeight }}>
+      <View style={{ flex: 1, paddingBottom: insets.bottom }}>
         {renderTabContent()}
       </View>
     </ThemedView>
