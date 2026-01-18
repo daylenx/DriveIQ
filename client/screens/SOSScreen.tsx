@@ -434,6 +434,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     gap: Spacing.md,
     marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.md,
   },
   warningText: {
     flex: 1,

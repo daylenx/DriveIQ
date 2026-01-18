@@ -5,7 +5,6 @@ import { BlurView } from "expo-blur";
 import { Platform, StyleSheet } from "react-native";
 import DashboardStackNavigator from "@/navigation/DashboardStackNavigator";
 import VehiclesStackNavigator from "@/navigation/VehiclesStackNavigator";
-import MaintenanceStackNavigator from "@/navigation/MaintenanceStackNavigator";
 import LogsStackNavigator from "@/navigation/LogsStackNavigator";
 import SettingsStackNavigator from "@/navigation/SettingsStackNavigator";
 import SOSStackNavigator from "@/navigation/SOSStackNavigator";

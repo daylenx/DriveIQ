@@ -21,7 +21,7 @@ DriveIQ is a cross-platform mobile application built with Expo React Native for 
 - **Storage**: Firebase Firestore + AsyncStorage for local preferences
 - **UI/UX Decisions**:
     - **Theme System**: Light, Dark, and Pink modes.
-    - **Navigation**: 4-tab bottom navigation (Dashboard, Vehicles, Logs, Settings).
+    - **Navigation**: 5-tab bottom navigation (Dashboard, Vehicles, SOS, Logs, Settings).
     - **Odometer Units**: Per-vehicle unit selection ('mi' | 'km') with automatic conversion.
     - **Reminder System**: Gentle odometer reminder banner after 14 days without update.
     - **Cost Analytics**: Cost Summary Card for Pro users, showing spending breakdown.
@@ -43,6 +43,11 @@ DriveIQ is a cross-platform mobile application built with Expo React Native for 
 - **Analytics**: Cost summary for Pro users, fleet dashboard with comprehensive analytics (for fleet users).
 - **Theme System**: Persisted theme selection with Light, Dark, and Pink options.
 - **Maintenance Logic**: "Whichever-comes-first" reminders (miles OR days). Service intervals are system-defined.
+- **SOS/Roadside Assistance**: Emergency tab for finding nearby tow trucks or mechanics.
+    - Service type selection (Tow/Mechanic) with auto-detected vehicle type
+    - Location permission requested only on "Find Nearby" tap (no background tracking)
+    - Nearby places search via Google Places API with tap-to-call functionality
+    - Share location feature opens share sheet with Apple/Google Maps links
 
 ## External Dependencies
 - **Firebase**: Authentication, Firestore Database.
@@ -53,3 +58,4 @@ DriveIQ is a cross-platform mobile application built with Expo React Native for 
 - **AsyncStorage**: For local preference storage.
 - **expo-apple-authentication**: For Apple Sign-In on iOS.
 - **Google Sheets API**: Fleet admins can export data to Google Sheets (via Replit connector).
+- **Google Places API**: SOS feature uses Places API to find nearby tow trucks and mechanics.
