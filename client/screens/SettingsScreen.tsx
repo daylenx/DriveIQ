@@ -200,6 +200,25 @@ export default function SettingsScreen() {
                 </View>
               </View>
             </View>
+            <Pressable
+              style={({ pressed }) => [
+                styles.settingsRow,
+                { 
+                  backgroundColor: theme.backgroundDefault,
+                  opacity: pressed ? 0.8 : 1,
+                  marginTop: Spacing.md,
+                },
+              ]}
+              onPress={() => navigation.navigate('FleetDashboard')}
+            >
+              <View style={styles.settingsRowLeft}>
+                <View style={[styles.settingsIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                  <Feather name="bar-chart-2" size={18} color={theme.primary} />
+                </View>
+                <ThemedText type="body">Fleet Dashboard</ThemedText>
+              </View>
+              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+            </Pressable>
           </View>
         ) : null}
 
@@ -536,6 +555,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs / 2,
     borderRadius: BorderRadius.xs,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+  },
+  settingsRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  settingsIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   createFleetButton: {
     flexDirection: 'row',

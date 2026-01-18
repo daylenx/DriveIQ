@@ -9,6 +9,7 @@ import VehicleSettingsModal from "@/screens/VehicleSettingsModal";
 import UsageIntentScreen from "@/screens/UsageIntentScreen";
 import PricingScreen from "@/screens/PricingScreen";
 import FamilyManagementScreen from "@/screens/FamilyManagementScreen";
+import FleetDashboardScreen from "@/screens/FleetDashboardScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
@@ -21,6 +22,7 @@ export type RootStackParamList = {
   UsageIntent: undefined;
   Pricing: undefined;
   FamilyManagement: undefined;
+  FleetDashboard: undefined;
   AddVehicle: { vehicleId?: string } | undefined;
   LogMaintenance: { task?: MaintenanceTask };
   UpdateOdometer: { vehicleId: string };
@@ -72,6 +74,14 @@ export default function RootStackNavigator() {
               options={{
                 presentation: "modal",
                 headerTitle: "Members",
+              }}
+            />
+            <Stack.Screen
+              name="FleetDashboard"
+              component={FleetDashboardScreen}
+              options={{
+                presentation: "modal",
+                headerTitle: "Fleet Dashboard",
               }}
             />
             <Stack.Screen
