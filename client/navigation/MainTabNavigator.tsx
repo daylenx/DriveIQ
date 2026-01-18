@@ -8,12 +8,13 @@ import VehiclesStackNavigator from "@/navigation/VehiclesStackNavigator";
 import MaintenanceStackNavigator from "@/navigation/MaintenanceStackNavigator";
 import LogsStackNavigator from "@/navigation/LogsStackNavigator";
 import SettingsStackNavigator from "@/navigation/SettingsStackNavigator";
+import SOSStackNavigator from "@/navigation/SOSStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
 
 export type MainTabParamList = {
   DashboardTab: undefined;
   VehiclesTab: undefined;
-  MaintenanceTab: undefined;
+  SOSTab: undefined;
   LogsTab: undefined;
   SettingsTab: undefined;
 };
@@ -70,12 +71,12 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="MaintenanceTab"
-        component={MaintenanceStackNavigator}
+        name="SOSTab"
+        component={SOSStackNavigator}
         options={{
-          title: "Maintenance",
+          title: "SOS",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="tool" size={size} color={color} />
+            <Feather name="alert-circle" size={size} color={color} />
           ),
         }}
       />
