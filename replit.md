@@ -52,3 +52,4 @@ DriveIQ is a cross-platform mobile application built with Expo React Native for 
 - **RevenueCat**: Subscription management and in-app purchase processing (Apple In-App Purchases).
 - **AsyncStorage**: For local preference storage.
 - **expo-apple-authentication**: For Apple Sign-In on iOS.
+- **Google Sheets API**: Fleet admins can export data to Google Sheets (via Replit connector).
