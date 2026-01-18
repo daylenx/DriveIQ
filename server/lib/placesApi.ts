@@ -182,12 +182,49 @@ async function getPlaceDetails(placeId: string, apiKey: string): Promise<{ phone
  * - Shows users representative data while waiting for real results
  * 
  * The sample data includes realistic business names, addresses, and phone numbers
- * formatted like real tow services and auto shops.
+ * formatted like real tow services and auto shops. Different results are returned
+ * based on whether the query indicates heavy-duty/semi-truck needs.
  */
 function getSamplePlaces(query: string): NearbyPlace[] {
-  const isTow = query.toLowerCase().includes('tow');
+  const queryLower = query.toLowerCase();
+  const isTow = queryLower.includes('tow');
+  const isHeavyDuty = queryLower.includes('semi') || queryLower.includes('heavy duty') || queryLower.includes('commercial');
+  const isDiesel = queryLower.includes('diesel') || queryLower.includes('truck repair');
   
   if (isTow) {
+    if (isHeavyDuty) {
+      // Heavy-duty towing for semi-trucks and commercial vehicles
+      return [
+        {
+          id: 'sample-hd-1',
+          name: 'Big Rig Towing & Recovery',
+          address: '500 Truckers Way',
+          phone: '(555) 800-SEMI',
+          rating: 4.7,
+          distance: '3.5 mi',
+          isOpen: true,
+        },
+        {
+          id: 'sample-hd-2',
+          name: 'Commercial Fleet Towing',
+          address: '750 Highway 66',
+          phone: '(555) 700-8888',
+          rating: 4.9,
+          distance: '5.2 mi',
+          isOpen: true,
+        },
+        {
+          id: 'sample-hd-3',
+          name: 'Heavy Duty Recovery Services',
+          address: '1200 Industrial Blvd',
+          phone: '(555) 600-HAUL',
+          rating: 4.6,
+          distance: '7.1 mi',
+          isOpen: true,
+        },
+      ];
+    }
+    // Standard towing for cars and pickups
     return [
       {
         id: 'sample-1',
@@ -220,6 +257,40 @@ function getSamplePlaces(query: string): NearbyPlace[] {
   }
   
   // Mechanic sample data
+  if (isDiesel || isHeavyDuty) {
+    // Diesel/commercial truck repair
+    return [
+      {
+        id: 'sample-diesel-1',
+        name: 'Diesel Truck Center',
+        address: '800 Trucker Lane',
+        phone: '(555) 900-DSEL',
+        rating: 4.8,
+        distance: '4.2 mi',
+        isOpen: true,
+      },
+      {
+        id: 'sample-diesel-2',
+        name: 'Commercial Truck Repair',
+        address: '950 Fleet Service Rd',
+        phone: '(555) 850-TRUK',
+        rating: 4.6,
+        distance: '5.8 mi',
+        isOpen: true,
+      },
+      {
+        id: 'sample-diesel-3',
+        name: 'Big Rig Mechanics',
+        address: '1100 Highway Service Center',
+        phone: '(555) 777-SEMI',
+        rating: 4.9,
+        distance: '6.5 mi',
+        isOpen: false,
+      },
+    ];
+  }
+  
+  // Standard auto repair
   return [
     {
       id: 'sample-1',

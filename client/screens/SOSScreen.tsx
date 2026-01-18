@@ -162,9 +162,33 @@ export default function SOSScreen() {
 
       // Tailor search query based on service type and vehicle type
       // Semi-trucks need specialized heavy-duty towing and truck repair shops
-      const searchQuery = serviceType === 'tow' 
-        ? `tow truck ${vehicleType === 'semi' ? 'heavy duty' : ''}`
-        : `auto mechanic ${vehicleType === 'semi' ? 'truck repair' : 'car repair'}`;
+      // Using very specific terms to ensure Google Places returns appropriate results
+      let searchQuery: string;
+      
+      if (serviceType === 'tow') {
+        if (vehicleType === 'semi') {
+          // Semi-trucks require heavy-duty/commercial towing - regular tow trucks can't handle them
+          searchQuery = 'heavy duty towing semi truck commercial tow service';
+        } else if (vehicleType === 'pickup') {
+          // Pickup trucks can use regular towing but benefit from flatbed services
+          searchQuery = 'tow truck flatbed towing service';
+        } else {
+          // Cars and other passenger vehicles
+          searchQuery = 'tow truck roadside assistance';
+        }
+      } else {
+        // Mechanic searches
+        if (vehicleType === 'semi') {
+          // Semi-trucks need diesel mechanics and truck service centers
+          searchQuery = 'semi truck repair diesel mechanic commercial truck service';
+        } else if (vehicleType === 'pickup') {
+          searchQuery = 'truck repair auto mechanic';
+        } else {
+          searchQuery = 'auto mechanic car repair';
+        }
+      }
+      
+      console.log(`SOS Search: vehicleType=${vehicleType}, serviceType=${serviceType}, query="${searchQuery}"`);
 
       const response = await fetch(
         `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/places/nearby?lat=${coords.lat}&lng=${coords.lng}&query=${encodeURIComponent(searchQuery)}`
