@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, FlatList } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, StyleSheet, Pressable, ScrollView, FlatList, Alert, Linking, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Feather } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useFleet } from '@/context/FleetContext';
 import { useData } from '@/context/DataContext';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { Vehicle, ServiceLog, FleetMember, DashboardTask } from '@/types';
+import { getApiUrl } from '@/lib/query-client';
 
 type TabId = 'overview' | 'vehicles' | 'drivers' | 'logs' | 'costs' | 'reminders';
 
@@ -31,6 +32,7 @@ export default function FleetDashboardScreen() {
   const { vehicles, serviceLogs, dashboardTasks } = useData();
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [isExporting, setIsExporting] = useState(false);
 
   const fleetVehicles = useMemo(() => 
     vehicles.filter(v => v.fleetId === fleet?.id),
@@ -46,6 +48,101 @@ export default function FleetDashboardScreen() {
     dashboardTasks.filter(t => t.fleetId === fleet?.id),
     [dashboardTasks, fleet?.id]
   );
+
+  const handleExportToSheets = useCallback(async () => {
+    if (!fleet || !isFleetAdmin) return;
+
+    setIsExporting(true);
+    try {
+      const now = Date.now();
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      thisMonth.setHours(0, 0, 0, 0);
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
+
+      const monthlyLogs = fleetLogs.filter(l => l.date >= thisMonth.getTime());
+      const monthlyCost = monthlyLogs.reduce((sum, l) => sum + (l.cost || 0), 0);
+      const ytdLogs = fleetLogs.filter(l => l.date >= startOfYear);
+      const ytdCost = ytdLogs.reduce((sum, l) => sum + (l.cost || 0), 0);
+
+      const categoryBreakdown: Record<string, number> = {};
+      ytdLogs.forEach(log => {
+        const cat = log.category || 'Other';
+        categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + (log.cost || 0);
+      });
+
+      const exportData = {
+        fleetName: fleet.name,
+        vehicles: fleetVehicles.map(v => {
+          const member = fleetMembers.find(m => m.userId === v.userId);
+          return {
+            name: v.nickname,
+            year: v.year,
+            make: v.make,
+            model: v.model,
+            vin: v.vin || '',
+            type: v.vehicleType,
+            odometer: v.currentOdometer,
+            odometerUnit: v.odometerUnit || 'mi',
+            isActive: v.isActive !== false,
+            assignedDriver: member?.displayName || member?.email || '',
+            lastUpdated: v.lastOdometerUpdate ? new Date(v.lastOdometerUpdate).toLocaleDateString() : ''
+          };
+        }),
+        serviceLogs: fleetLogs.map(l => {
+          const vehicle = fleetVehicles.find(v => v.id === l.vehicleId);
+          return {
+            vehicleName: vehicle?.nickname || 'Unknown',
+            serviceType: l.taskName,
+            date: new Date(l.date).toLocaleDateString(),
+            odometer: l.odometer,
+            odometerUnit: vehicle?.odometerUnit || 'mi',
+            cost: l.cost || 0,
+            vendor: '',
+            notes: l.notes || '',
+            category: l.category || ''
+          };
+        }),
+        members: fleetMembers.map(m => ({
+          name: m.displayName || '',
+          email: m.email || '',
+          role: m.role === 'admin' ? 'Admin' : 'Driver',
+          joinedAt: m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '',
+          assignedVehicles: fleetVehicles.filter(v => v.userId === m.userId).length
+        })),
+        costSummary: {
+          monthlyTotal: monthlyCost,
+          ytdTotal: ytdCost,
+          categoryBreakdown
+        }
+      };
+
+      const response = await fetch(new URL('/api/fleet/export-to-sheets', getApiUrl()).toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exportData)
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.url) {
+        Alert.alert(
+          'Export Complete',
+          'Your fleet data has been exported to Google Sheets.',
+          [
+            { text: 'Open Spreadsheet', onPress: () => Linking.openURL(result.url) },
+            { text: 'OK', style: 'cancel' }
+          ]
+        );
+      } else {
+        throw new Error(result.error || 'Export failed');
+      }
+    } catch (error: any) {
+      Alert.alert('Export Failed', error.message || 'Could not export to Google Sheets. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [fleet, isFleetAdmin, fleetVehicles, fleetLogs, fleetMembers]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -85,10 +182,38 @@ export default function FleetDashboardScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: headerHeight + Spacing.md }]}>
-        <ThemedText type="h2">{fleet.name}</ThemedText>
-        <ThemedText type="body" style={{ color: theme.textSecondary }}>
-          Fleet Dashboard
-        </ThemedText>
+        <View style={styles.headerTop}>
+          <View style={{ flex: 1 }}>
+            <ThemedText type="h2">{fleet.name}</ThemedText>
+            <ThemedText type="body" style={{ color: theme.textSecondary }}>
+              Fleet Dashboard
+            </ThemedText>
+          </View>
+          {isFleetAdmin && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.exportButton,
+                { 
+                  backgroundColor: theme.primary,
+                  opacity: pressed || isExporting ? 0.7 : 1 
+                }
+              ]}
+              onPress={handleExportToSheets}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Feather name="upload" size={16} color="#fff" />
+                  <ThemedText type="small" style={{ color: '#fff', marginLeft: Spacing.xs }}>
+                    Export
+                  </ThemedText>
+                </>
+              )}
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <ScrollView 
@@ -627,6 +752,20 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.md,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    minWidth: 80,
+    justifyContent: 'center',
   },
   tabBar: {
     flexGrow: 0,
