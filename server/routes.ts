@@ -30,6 +30,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "node:http";
 import { exportFleetToGoogleSheets, FleetExportData } from "./lib/googleSheets";
 import { searchNearbyPlaces } from "./lib/placesApi";
+import { 
+  createMaintenanceReminder, 
+  syncMaintenanceReminders, 
+  listDriveIQEvents,
+  deleteMaintenanceReminder,
+  MaintenanceReminderEvent 
+} from "./lib/googleCalendar";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   /**
@@ -108,6 +115,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error exporting to Google Sheets:", error);
       res.status(500).json({ 
         error: error.message || "Failed to export to Google Sheets" 
+      });
+    }
+  });
+
+  /**
+   * POST /api/calendar/sync-reminders
+   * 
+   * PURPOSE: Sync maintenance reminders to Google Calendar.
+   * Creates calendar events for upcoming maintenance tasks.
+   * 
+   * BODY: { reminders: MaintenanceReminderEvent[] }
+   * 
+   * RETURNS: { success: true, created: number, errors: string[] }
+   * 
+   * PREREQUISITE: User must have Google Calendar connector set up in Replit
+   */
+  app.post("/api/calendar/sync-reminders", async (req, res) => {
+    try {
+      const { reminders } = req.body;
+      
+      if (!reminders || !Array.isArray(reminders)) {
+        return res.status(400).json({ error: "reminders array is required" });
+      }
+
+      // Convert date strings to Date objects
+      const parsedReminders: MaintenanceReminderEvent[] = reminders.map((r: any) => ({
+        ...r,
+        dueDate: new Date(r.dueDate),
+      }));
+
+      const result = await syncMaintenanceReminders(parsedReminders);
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      console.error("Error syncing to Google Calendar:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to sync to Google Calendar" 
+      });
+    }
+  });
+
+  /**
+   * POST /api/calendar/create-reminder
+   * 
+   * PURPOSE: Create a single maintenance reminder in Google Calendar.
+   * 
+   * BODY: MaintenanceReminderEvent object
+   * 
+   * RETURNS: { success: true, eventId: string }
+   */
+  app.post("/api/calendar/create-reminder", async (req, res) => {
+    try {
+      const reminder = req.body;
+      
+      if (!reminder.vehicleName || !reminder.serviceType || !reminder.dueDate) {
+        return res.status(400).json({ error: "vehicleName, serviceType, and dueDate are required" });
+      }
+
+      const eventId = await createMaintenanceReminder({
+        ...reminder,
+        dueDate: new Date(reminder.dueDate),
+      });
+      
+      res.json({ success: true, eventId });
+    } catch (error: any) {
+      console.error("Error creating calendar reminder:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to create calendar reminder" 
+      });
+    }
+  });
+
+  /**
+   * GET /api/calendar/events
+   * 
+   * PURPOSE: List all DriveIQ-created calendar events.
+   * Useful for showing synced reminders or avoiding duplicates.
+   * 
+   * RETURNS: { events: Array<{ id, summary, date }> }
+   */
+  app.get("/api/calendar/events", async (_req, res) => {
+    try {
+      const events = await listDriveIQEvents();
+      res.json({ events });
+    } catch (error: any) {
+      console.error("Error listing calendar events:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to list calendar events" 
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/calendar/events/:eventId
+   * 
+   * PURPOSE: Delete a DriveIQ calendar event.
+   * 
+   * PARAMS: eventId - The Google Calendar event ID
+   * 
+   * RETURNS: { success: true }
+   */
+  app.delete("/api/calendar/events/:eventId", async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      
+      if (!eventId) {
+        return res.status(400).json({ error: "eventId is required" });
+      }
+
+      await deleteMaintenanceReminder(eventId);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deleting calendar event:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to delete calendar event" 
       });
     }
   });
