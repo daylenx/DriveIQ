@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Alert, Switch, Modal, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Alert, Switch, Modal, TextInput, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -14,6 +14,7 @@ import { useFleet } from '@/context/FleetContext';
 import { Spacing, BorderRadius, Colors, ThemeMode } from '@/constants/theme';
 import { PLANS, planSupportsMultiUser } from '@/constants/plans';
 import { DEV_PREVIEW_PAYWALL } from '@/constants/featureFlags';
+import { getApiUrl } from '@/lib/query-client';
 
 const themeOptions: { mode: ThemeMode; label: string; icon: keyof typeof Feather.glyphMap; color: string }[] = [
   { mode: 'light', label: 'Light', icon: 'sun', color: '#F59E0B' },
@@ -38,6 +39,7 @@ export default function SettingsScreen() {
   const [showFleetNameModal, setShowFleetNameModal] = useState(false);
   const [fleetName, setFleetName] = useState('');
   const [isCreatingFleet, setIsCreatingFleet] = useState(false);
+  const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
   
   const isFleetPlan = currentPlan === 'fleet_starter' || currentPlan === 'fleet_pro';
   const needsFleetCreation = isFleetPlan && !fleet;
@@ -107,6 +109,60 @@ export default function SettingsScreen() {
         },
       ]
     );
+  };
+
+  const handleSyncToCalendar = async () => {
+    if (isSyncingCalendar) return;
+    
+    const dueSoonTasks = maintenanceTasks.filter(task => {
+      if (!task.nextDueDate) return false;
+      const dueDate = new Date(task.nextDueDate);
+      const daysUntilDue = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      return daysUntilDue <= 30 && daysUntilDue > 0;
+    });
+    
+    if (dueSoonTasks.length === 0) {
+      Alert.alert('No Reminders to Sync', 'You have no upcoming maintenance tasks within the next 30 days to add to your calendar.');
+      return;
+    }
+    
+    setIsSyncingCalendar(true);
+    try {
+      const reminders = dueSoonTasks.map(task => {
+        const vehicle = vehicles.find(v => v.id === task.vehicleId);
+        const dueDate = task.nextDueDate ? new Date(task.nextDueDate) : new Date();
+        
+        return {
+          vehicleName: vehicle?.nickname || 'Unknown Vehicle',
+          serviceType: task.name,
+          dueDate: dueDate.toISOString(),
+          dueMileage: task.nextDueOdometer || undefined,
+          odometerUnit: vehicle?.odometerUnit || 'mi',
+        };
+      });
+      
+      const response = await fetch(new URL('/api/calendar/sync-reminders', getApiUrl()).toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reminders }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to sync reminders');
+      }
+      
+      Alert.alert(
+        'Calendar Synced', 
+        `Successfully added ${result.created} maintenance reminder${result.created !== 1 ? 's' : ''} to your Google Calendar.`
+      );
+    } catch (error: any) {
+      console.error('Error syncing to calendar:', error);
+      Alert.alert('Sync Failed', error.message || 'Could not sync reminders to Google Calendar. Please try again.');
+    } finally {
+      setIsSyncingCalendar(false);
+    }
   };
 
   const colors = Colors[themeMode];
@@ -376,6 +432,30 @@ export default function SettingsScreen() {
                 thumbColor="#FFFFFF"
               />
             </View>
+            <Pressable
+              onPress={handleSyncToCalendar}
+              disabled={isSyncingCalendar}
+              style={({ pressed }) => [
+                styles.settingItem,
+                { 
+                  backgroundColor: theme.backgroundDefault, 
+                  opacity: pressed || isSyncingCalendar ? 0.6 : 1,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                },
+              ]}
+            >
+              <Feather name="calendar" size={20} color={theme.primary} />
+              <View style={styles.settingContent}>
+                <ThemedText type="body">
+                  {isSyncingCalendar ? 'Syncing...' : 'Sync to Google Calendar'}
+                </ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                  Add upcoming maintenance to your calendar
+                </ThemedText>
+              </View>
+              <Feather name="chevron-right" size={18} color={theme.textSecondary} />
+            </Pressable>
           </View>
         </View>
 
