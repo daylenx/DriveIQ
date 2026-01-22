@@ -185,6 +185,13 @@ export async function exportFleetToGoogleSheets(data: FleetExportData): Promise<
   });
 
   const spreadsheetId = spreadsheet.data.spreadsheetId!;
+  
+  // Get actual sheet IDs from the created spreadsheet
+  // Google assigns non-sequential IDs, so we can't assume 0, 1, 2
+  const createdSheets = spreadsheet.data.sheets || [];
+  const vehiclesSheetId = createdSheets[0]?.properties?.sheetId ?? 0;
+  const serviceLogsSheetId = createdSheets[1]?.properties?.sheetId ?? 1;
+  const membersSheetId = createdSheets[2]?.properties?.sheetId ?? 2;
 
   // Prepare vehicle data with headers
   const vehicleHeaders = ['Name', 'Year', 'Make', 'Model', 'VIN', 'Type', 'Odometer', 'Unit', 'Status', 'Assigned Driver', 'Last Updated'];
@@ -245,28 +252,28 @@ export async function exportFleetToGoogleSheets(data: FleetExportData): Promise<
   });
 
   // Apply header formatting - bold text with gray background
-  // Sheet IDs are 0, 1, 2 for the first three sheets
+  // Use actual sheet IDs retrieved from the created spreadsheet
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId,
     requestBody: {
       requests: [
         {
           repeatCell: {
-            range: { sheetId: 0, startRowIndex: 0, endRowIndex: 1 },
+            range: { sheetId: vehiclesSheetId, startRowIndex: 0, endRowIndex: 1 },
             cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 } } },
             fields: 'userEnteredFormat(textFormat,backgroundColor)'
           }
         },
         {
           repeatCell: {
-            range: { sheetId: 1, startRowIndex: 0, endRowIndex: 1 },
+            range: { sheetId: serviceLogsSheetId, startRowIndex: 0, endRowIndex: 1 },
             cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 } } },
             fields: 'userEnteredFormat(textFormat,backgroundColor)'
           }
         },
         {
           repeatCell: {
-            range: { sheetId: 2, startRowIndex: 0, endRowIndex: 1 },
+            range: { sheetId: membersSheetId, startRowIndex: 0, endRowIndex: 1 },
             cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 } } },
             fields: 'userEnteredFormat(textFormat,backgroundColor)'
           }
