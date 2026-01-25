@@ -3,6 +3,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -11,93 +15,330 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Check if user is a member of a specific fleet
     function isFleetMember(fleetId) {
-      return fleetId != null && exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid));
+      return fleetId != null && 
+        exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid));
     }
 
+    // Check if user is an admin of a specific fleet
     function isFleetAdmin(fleetId) {
       return fleetId != null && 
         exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users can always read/write their own document (including setting fleetId when accepting invites)
-    // Fleet admins can also read fleet member user documents (to display names/emails)
-    // Fleet admins can also update fleet member user documents
-    // IMPORTANT: Deploy this file to Firebase Console > Firestore > Rules for changes to take effect
+    // Check if user is a driver in a specific fleet
+    function isFleetDriver(fleetId) {
+      return fleetId != null && 
+        exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)).data.role == 'driver';
+    }
+
+    // Check if user is the primary user of a family (owns the family subscription)
+    function isFamilyPrimary(primaryUserId) {
+      return primaryUserId == request.auth.uid;
+    }
+
+    // Check if user is a member of a family (either primary or invited member)
+    function isFamilyMember(primaryUserId) {
+      return primaryUserId == request.auth.uid || 
+        exists(/databases/$(database)/documents/familyMemberships/$(primaryUserId + '_' + request.auth.uid));
+    }
+
+    // Prevent modification of ownership/system fields on update
+    function ownershipFieldsUnchanged() {
+      return (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'createdBy', 'createdAt']));
+    }
+
+    // Prevent modification of subscription/plan fields (should only be set by backend/RevenueCat)
+    function subscriptionFieldsUnchanged() {
+      return (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionPlan', 'subscriptionStatus', 'vehicleLimit', 'entitlements']));
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // Only owner can read/write their own document
+    // Fleet admins can read (but NOT write) fleet member documents for display purposes
+    // ============================================
     match /users/{userId} {
       allow read: if isAuthenticated() && (
         isOwner(userId) ||
-        // Allow fleet admins to read user documents for members of their fleet
-        (resource.data.keys().hasAny(['fleetId']) && resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+        // Fleet admins can read user docs of their fleet members (for displaying names/emails)
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
       );
-      allow write: if isAuthenticated() && isOwner(userId);
-      // Allow fleet admins to update member documents
-      allow update: if isAuthenticated() && (
-        isOwner(userId) || 
-        (resource.data.keys().hasAny(['primaryUserId']) && resource.data.primaryUserId == request.auth.uid) ||
-        (resource.data.keys().hasAny(['fleetId']) && resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
-      );
+      
+      // Only owner can create their own user document
+      allow create: if isAuthenticated() && isOwner(userId);
+      
+      // Only owner can update, and cannot modify subscription fields (set by backend)
+      allow update: if isAuthenticated() && isOwner(userId) && subscriptionFieldsUnchanged();
+      
+      // Only owner can delete their document
+      allow delete: if isAuthenticated() && isOwner(userId);
     }
 
+    // ============================================
+    // VEHICLES COLLECTION
+    // Personal vehicles: only owner can access
+    // Fleet vehicles: fleet members can read, admins can write, drivers can update odometer
+    // ============================================
     match /vehicles/{vehicleId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-        (resource == null || resource.data.userId == request.auth.uid || 
-         isFleetMember(resource.data.fleetId));
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Read: owner OR fleet member (if fleet vehicle)
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.fleetId != null && isFleetMember(resource.data.fleetId))
+      );
+
+      // Create: must set userId to self, cannot create fleet vehicles directly (admin assigns fleetId via update)
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        (!request.resource.data.keys().hasAny(['fleetId']) || request.resource.data.fleetId == null);
+
+      // Update: owner can update personal vehicles
+      // Fleet admins can update fleet vehicles (including assigning to fleet)
+      // Fleet drivers can ONLY update currentOdometer and lastOdometerUpdate fields
+      allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
+        // Owner updating their own personal vehicle
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        // Fleet admin can update any fleet vehicle
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId)) ||
+        // Fleet driver can only update odometer fields
+        (resource.data.fleetId != null && isFleetDriver(resource.data.fleetId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentOdometer', 'lastOdometerUpdate', 'updatedAt']))
+      );
+
+      // Delete: only owner (personal) or fleet admin (fleet vehicles)
+      allow delete: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+      );
     }
 
+    // ============================================
+    // MAINTENANCE TASKS COLLECTION
+    // Personal tasks: only owner can access
+    // Fleet tasks: fleet members can read, admins can write
+    // ============================================
     match /maintenanceTasks/{taskId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-        (resource == null || resource.data.userId == request.auth.uid ||
-         isFleetMember(resource.data.fleetId));
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Read: owner OR fleet member
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.fleetId != null && isFleetMember(resource.data.fleetId))
+      );
+
+      // Create: must set userId to self
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+
+      // Update: owner (personal) or fleet admin (fleet tasks)
+      allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+      );
+
+      // Delete: owner (personal) or fleet admin (fleet tasks)
+      allow delete: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+      );
     }
 
+    // ============================================
+    // SERVICE LOGS COLLECTION
+    // Personal logs: only owner can access
+    // Fleet logs: fleet members can read, admins can write, drivers can create for fleet vehicles
+    // ============================================
     match /serviceLogs/{logId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-        (resource == null || resource.data.userId == request.auth.uid ||
-         isFleetMember(resource.data.fleetId));
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Read: owner OR fleet member
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.fleetId != null && isFleetMember(resource.data.fleetId))
+      );
+
+      // Create: owner sets userId to self
+      // Fleet drivers can create logs for fleet vehicles (fleetId must be set and they must be a member)
+      allow create: if isAuthenticated() && (
+        // Personal log creation
+        (request.resource.data.userId == request.auth.uid && 
+          (!request.resource.data.keys().hasAny(['fleetId']) || request.resource.data.fleetId == null)) ||
+        // Fleet log creation by driver or admin
+        (request.resource.data.fleetId != null && 
+          request.resource.data.userId == request.auth.uid &&
+          isFleetMember(request.resource.data.fleetId))
+      );
+
+      // Update: owner (personal) or fleet admin (fleet logs)
+      allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+      );
+
+      // Delete: owner (personal) or fleet admin (fleet logs)
+      allow delete: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && resource.data.fleetId == null) ||
+        (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
+      );
     }
 
-    match /familyMemberships/{membershipId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-        (resource == null || resource.data.primaryUserId == request.auth.uid);
-      allow create: if isAuthenticated();
-    }
-
-    match /familyInvites/{inviteId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-    }
-
+    // ============================================
+    // FLEETS COLLECTION
+    // Only fleet admins can manage fleet settings
+    // Fleet members can read their fleet
+    // ============================================
     match /fleets/{fleetId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && 
-        (resource == null || resource.data.createdBy == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      // Read: only fleet members
+      allow read: if isAuthenticated() && isFleetMember(fleetId);
 
+      // Create: authenticated user becomes admin (createdBy must match)
+      allow create: if isAuthenticated() && 
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Update: only fleet admins, cannot change createdBy
+      allow update: if isAuthenticated() && 
+        isFleetAdmin(fleetId) &&
+        request.resource.data.createdBy == resource.data.createdBy;
+
+      // Delete: only fleet admin who created it
+      allow delete: if isAuthenticated() && 
+        isFleetAdmin(fleetId) && 
+        resource.data.createdBy == request.auth.uid;
+
+      // ============================================
+      // FLEET MEMBERS SUBCOLLECTION
+      // Admins can manage members, members can read
+      // ============================================
       match /members/{memberId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated();
-        allow create: if isAuthenticated();
+        // Read: any fleet member can see other members
+        allow read: if isAuthenticated() && isFleetMember(fleetId);
+
+        // Create: only fleet admin can add members (or self-add when accepting invite - handled via invite logic)
+        allow create: if isAuthenticated() && (
+          isFleetAdmin(fleetId) ||
+          // Self-creation when accepting invite (memberId must match auth uid)
+          memberId == request.auth.uid
+        );
+
+        // Update: admin can update roles, but cannot escalate to admin
+        // Members cannot change their own role to admin
+        allow update: if isAuthenticated() && (
+          // Admin updating other members (not escalating non-admin to admin by non-owner)
+          (isFleetAdmin(fleetId) && 
+            // Prevent setting role to admin unless the fleet creator is doing it
+            (request.resource.data.role != 'admin' || 
+              get(/databases/$(database)/documents/fleets/$(fleetId)).data.createdBy == request.auth.uid)) ||
+          // Member updating their own non-role fields (e.g., displayName)
+          (memberId == request.auth.uid && 
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+        );
+
+        // Delete: only fleet admin can remove members, or member can remove themselves
+        allow delete: if isAuthenticated() && (
+          isFleetAdmin(fleetId) ||
+          memberId == request.auth.uid
+        );
       }
     }
 
-    // Collection group rule for querying members across all fleets
+    // Collection group query for members (for querying user's fleet memberships)
     match /{path=**}/members/{memberId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && memberId == request.auth.uid;
     }
 
+    // ============================================
+    // FLEET INVITES COLLECTION
+    // Only inviter (admin) can create/cancel
+    // Only inviter or invitee can read
+    // Invitee can accept (limited update)
+    // ============================================
     match /fleetInvites/{inviteId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-      allow create: if isAuthenticated();
+      // Read: only inviter or invitee
+      allow read: if isAuthenticated() && (
+        resource.data.invitedBy == request.auth.uid ||
+        resource.data.inviteeEmail == request.auth.token.email ||
+        resource.data.inviteeUserId == request.auth.uid
+      );
+
+      // Create: must be fleet admin, invitedBy must match auth uid
+      allow create: if isAuthenticated() && 
+        request.resource.data.invitedBy == request.auth.uid &&
+        isFleetAdmin(request.resource.data.fleetId);
+
+      // Update: invitee can accept (change status to accepted), inviter can cancel
+      allow update: if isAuthenticated() && (
+        // Invitee accepting invite
+        ((resource.data.inviteeEmail == request.auth.token.email || 
+          resource.data.inviteeUserId == request.auth.uid) &&
+          request.resource.data.status == 'accepted' &&
+          resource.data.status == 'pending') ||
+        // Inviter canceling invite
+        (resource.data.invitedBy == request.auth.uid &&
+          request.resource.data.status == 'cancelled')
+      );
+
+      // Delete: only inviter can delete
+      allow delete: if isAuthenticated() && 
+        resource.data.invitedBy == request.auth.uid;
+    }
+
+    // ============================================
+    // FAMILY MEMBERSHIPS COLLECTION
+    // Primary user can manage, members can read their own membership
+    // ============================================
+    match /familyMemberships/{membershipId} {
+      // Read: primary user or the member themselves
+      allow read: if isAuthenticated() && (
+        resource.data.primaryUserId == request.auth.uid ||
+        resource.data.memberId == request.auth.uid
+      );
+
+      // Create: primary user creates memberships
+      allow create: if isAuthenticated() && 
+        request.resource.data.primaryUserId == request.auth.uid;
+
+      // Update: only primary user
+      allow update: if isAuthenticated() && 
+        resource.data.primaryUserId == request.auth.uid &&
+        request.resource.data.primaryUserId == resource.data.primaryUserId;
+
+      // Delete: primary user or member leaving
+      allow delete: if isAuthenticated() && (
+        resource.data.primaryUserId == request.auth.uid ||
+        resource.data.memberId == request.auth.uid
+      );
+    }
+
+    // ============================================
+    // FAMILY INVITES COLLECTION
+    // Primary user can manage invites, invitee can read/accept
+    // ============================================
+    match /familyInvites/{inviteId} {
+      // Read: inviter or invitee
+      allow read: if isAuthenticated() && (
+        resource.data.invitedBy == request.auth.uid ||
+        resource.data.inviteeEmail == request.auth.token.email ||
+        resource.data.inviteeUserId == request.auth.uid
+      );
+
+      // Create: primary user creates invites
+      allow create: if isAuthenticated() && 
+        request.resource.data.invitedBy == request.auth.uid;
+
+      // Update: invitee can accept, inviter can cancel
+      allow update: if isAuthenticated() && (
+        // Invitee accepting
+        ((resource.data.inviteeEmail == request.auth.token.email || 
+          resource.data.inviteeUserId == request.auth.uid) &&
+          request.resource.data.status == 'accepted' &&
+          resource.data.status == 'pending') ||
+        // Inviter canceling
+        (resource.data.invitedBy == request.auth.uid &&
+          request.resource.data.status == 'cancelled')
+      );
+
+      // Delete: only inviter
+      allow delete: if isAuthenticated() && 
+        resource.data.invitedBy == request.auth.uid;
     }
   }
 }

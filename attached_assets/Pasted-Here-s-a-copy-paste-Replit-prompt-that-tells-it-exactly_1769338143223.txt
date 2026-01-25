@@ -1,0 +1,88 @@
+Here’s a copy-paste Replit prompt that tells it exactly what to tighten without breaking DriveIQ’s core features (personal + family + fleet, invites, shared vehicles/logs, roles).
+
+⸻
+
+Replit Prompt (Firestore rules hardening, keep app working)
+
+Tighten my Firebase Firestore security rules for DriveIQ without breaking existing app functionality (personal vehicles, family sharing, fleet sharing, invites, role-based access, and service logging). My current rules are too permissive (many collections allow any authenticated user to read/write broadly). I want a secure “v1” ruleset that still supports all core workflows.
+
+Current app behavior that MUST keep working
+
+Authentication
+	•	Only signed-in users can access data.
+
+Personal (non-fleet)
+	•	Users can create/read/update/delete their own:
+	•	vehicles
+	•	maintenanceTasks
+	•	serviceLogs
+	•	odometer updates
+	•	Users cannot access any other user’s personal vehicles/tasks/logs.
+
+Fleet
+	•	Fleets have members under: fleets/{fleetId}/members/{uid} with role in {admin, driver, viewer} (or at least admin/driver).
+	•	Fleet members must be able to read fleet vehicles/tasks/logs tied to that fleet.
+	•	Fleet admins can:
+	•	create/update/delete fleet vehicles
+	•	assign vehicles to members (if applicable)
+	•	manage members (add/remove/change role)
+	•	create/cancel fleet invites
+	•	Fleet drivers can:
+	•	read fleet vehicles/tasks/logs
+	•	create serviceLogs for assigned vehicles or for any fleet vehicle (choose the safer approach and explain)
+	•	update odometer entries (if stored in vehicles/serviceLogs)
+	•	Fleet viewers (if used) can read only.
+
+Invites
+	•	fleetInvites/{inviteId} exists for inviting users to fleets.
+	•	Only the inviter (fleet admin) and the invited recipient should be able to read an invite.
+	•	Only inviter can create/cancel invites.
+	•	Invitee can accept the invite (limited update), and acceptance should create the membership doc fleets/{fleetId}/members/{uid}.
+	•	Prevent random users from reading all invites or writing invites.
+
+Family
+	•	familyMemberships/{membershipId} and familyInvites/{inviteId} exist.
+	•	Only the primary user and invited members should access family membership/invites.
+	•	Keep family invite accept flow working.
+
+Users
+	•	users/{uid} should be readable/writable only by the owner by default.
+	•	If the app needs displaying member names/emails for fleet, do NOT allow fleet admins to freely edit user docs.
+	•	If needed, allow fleet admins to read a limited “public profile” OR use fleet member docs to store displayName/email.
+
+Security requirements
+	•	Remove all broad allow read/write: if isAuthenticated() access.
+	•	All reads must be scoped to either:
+	•	document owner (resource.data.userId == request.auth.uid), OR
+	•	fleet membership (isFleetMember(resource.data.fleetId)), OR
+	•	family relationship (primary user or invited member)
+	•	All writes must be restricted by role:
+	•	Admin-only for member management and fleet settings
+	•	Driver can write logs/odometer only where appropriate
+	•	Prevent privilege escalation:
+	•	Users cannot change their own role to admin
+	•	Users cannot change userId, fleetId, createdBy, or other ownership fields on updates
+	•	Block client edits to subscription/plan/limits fields if those are stored in /users or /fleets
+	•	Validate required fields on create (e.g., userId matches auth uid for personal docs)
+	•	Make rules consistent: use create, read, update, delete explicitly, not a mix of write + update
+
+Deliverables
+	1.	Produce the updated Firestore rules file (rules_version = ‘2’).
+	2.	Keep my existing helper functions pattern but tighten them.
+	3.	Explain any required data model tweaks (minimal) if a rule cannot be enforced otherwise.
+	4.	Include 5–8 test cases: “should allow” / “should deny” examples for personal, family, fleet admin, fleet driver, and a random authenticated user.
+
+Use my existing collections:
+	•	users/{uid}
+	•	vehicles/{vehicleId}
+	•	maintenanceTasks/{taskId}
+	•	serviceLogs/{logId}
+	•	fleets/{fleetId}
+	•	fleets/{fleetId}/members/{uid}
+	•	fleetInvites/{inviteId}
+	•	familyMemberships/{membershipId}
+	•	familyInvites/{inviteId}
+
+Goal: make the app secure against cross-user reads/writes while keeping all core DriveIQ features working.
+
+⸻
