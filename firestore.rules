@@ -15,32 +15,27 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Check if user is a member of a specific fleet
     function isFleetMember(fleetId) {
       return fleetId != null && 
         exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid));
     }
 
-    // Check if user is an admin of a specific fleet
     function isFleetAdmin(fleetId) {
       return fleetId != null && 
         exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Check if user is a driver in a specific fleet
     function isFleetDriver(fleetId) {
       return fleetId != null && 
         exists(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/fleets/$(fleetId)/members/$(request.auth.uid)).data.role == 'driver';
     }
 
-    // Prevent modification of ownership/system fields on update
     function ownershipFieldsUnchanged() {
       return (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'createdBy', 'createdAt']));
     }
 
-    // Prevent modification of subscription/plan fields (should only be set by backend/RevenueCat)
     function subscriptionFieldsUnchanged() {
       return (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionPlan', 'subscriptionStatus', 'vehicleLimit', 'entitlements']));
     }
@@ -49,54 +44,34 @@ service cloud.firestore {
     // USERS COLLECTION
     // ============================================
     match /users/{userId} {
-      // Owner can always read/write their own document
-      // Fleet admins can read (but NOT write) fleet member documents for display purposes
       allow read: if isAuthenticated() && (
         isOwner(userId) ||
         (resource.data.fleetId != null && isFleetAdmin(resource.data.fleetId))
       );
-      
       allow create: if isAuthenticated() && isOwner(userId);
-      
-      // Only owner can update, subscription fields protected
       allow update: if isAuthenticated() && isOwner(userId) && subscriptionFieldsUnchanged();
-      
       allow delete: if isAuthenticated() && isOwner(userId);
     }
 
     // ============================================
     // VEHICLES COLLECTION
-    // Query patterns supported:
-    // 1. where('userId', '==', uid) - personal vehicles
-    // 2. where('fleetId', '==', fleetId) - fleet vehicles (if member)
     // ============================================
     match /vehicles/{vehicleId} {
-      // Read allowed if:
-      // - Document belongs to user (userId matches), OR
-      // - Document is fleet vehicle and user is fleet member
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetMember(resource.data.fleetId)
       );
 
-      // Create: must set userId to self
       allow create: if isAuthenticated() && 
         request.resource.data.userId == request.auth.uid;
 
-      // Update: owner for personal, admins for fleet, drivers for odometer only
       allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
-        // Owner updating personal vehicle (not assigned to fleet)
-        (resource.data.userId == request.auth.uid && (resource.data.fleetId == null || !('fleetId' in resource.data))) ||
-        // Owner updating their own vehicle even if in fleet
-        (resource.data.userId == request.auth.uid) ||
-        // Fleet admin can update any fleet vehicle
+        resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId) ||
-        // Fleet driver can only update odometer fields
         (isFleetDriver(resource.data.fleetId) &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentOdometer', 'lastOdometerUpdate', 'updatedAt']))
       );
 
-      // Delete: owner (personal) or fleet admin
       allow delete: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId)
@@ -107,23 +82,19 @@ service cloud.firestore {
     // MAINTENANCE TASKS COLLECTION
     // ============================================
     match /maintenanceTasks/{taskId} {
-      // Read: owner OR fleet member
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetMember(resource.data.fleetId)
       );
 
-      // Create: must set userId to self
       allow create: if isAuthenticated() && 
         request.resource.data.userId == request.auth.uid;
 
-      // Update: owner or fleet admin
       allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
         resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId)
       );
 
-      // Delete: owner or fleet admin
       allow delete: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId)
@@ -134,23 +105,19 @@ service cloud.firestore {
     // SERVICE LOGS COLLECTION
     // ============================================
     match /serviceLogs/{logId} {
-      // Read: owner OR fleet member
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetMember(resource.data.fleetId)
       );
 
-      // Create: personal or fleet member can create logs
       allow create: if isAuthenticated() && 
         request.resource.data.userId == request.auth.uid;
 
-      // Update: owner or fleet admin
       allow update: if isAuthenticated() && ownershipFieldsUnchanged() && (
         resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId)
       );
 
-      // Delete: owner or fleet admin
       allow delete: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isFleetAdmin(resource.data.fleetId)
@@ -161,43 +128,26 @@ service cloud.firestore {
     // FLEETS COLLECTION
     // ============================================
     match /fleets/{fleetId} {
-      // Read: fleet members only
       allow read: if isAuthenticated() && isFleetMember(fleetId);
-
-      // Create: anyone can create a fleet (becomes admin)
       allow create: if isAuthenticated() && 
         request.resource.data.createdBy == request.auth.uid;
-
-      // Update: only fleet admins
       allow update: if isAuthenticated() && 
         isFleetAdmin(fleetId) &&
         request.resource.data.createdBy == resource.data.createdBy;
-
-      // Delete: only the creator
       allow delete: if isAuthenticated() && 
         resource.data.createdBy == request.auth.uid;
 
-      // ============================================
-      // FLEET MEMBERS SUBCOLLECTION
-      // ============================================
       match /members/{memberId} {
-        // Read: fleet members can see all members
         allow read: if isAuthenticated() && isFleetMember(fleetId);
-
-        // Create: admin adds members OR user accepts invite (self-add)
         allow create: if isAuthenticated() && (
           isFleetAdmin(fleetId) ||
           memberId == request.auth.uid
         );
-
-        // Update: admin can update (with restrictions), member can update own non-role fields
         allow update: if isAuthenticated() && (
           isFleetAdmin(fleetId) ||
           (memberId == request.auth.uid && 
             !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
         );
-
-        // Delete: admin or self-removal
         allow delete: if isAuthenticated() && (
           isFleetAdmin(fleetId) ||
           memberId == request.auth.uid
@@ -205,20 +155,22 @@ service cloud.firestore {
       }
     }
 
-    // Collection group query for finding user's fleet memberships
     match /{path=**}/members/{memberId} {
       allow read: if isAuthenticated() && memberId == request.auth.uid;
     }
 
     // ============================================
     // FLEET INVITES COLLECTION
+    // Fields: email, fleetId, fleetName, role, invitedAt, invitedBy
+    // Query patterns:
+    // 1. where('email', '==', userEmail) - invitee checks their invites
+    // 2. where('fleetId', '==', fleetId) - admin views pending invites
     // ============================================
     match /fleetInvites/{inviteId} {
-      // Read: inviter or invitee only
+      // Read: inviter (fleet admin) OR invitee (matched by email)
       allow read: if isAuthenticated() && (
         resource.data.invitedBy == request.auth.uid ||
-        resource.data.inviteeEmail == request.auth.token.email ||
-        resource.data.inviteeUserId == request.auth.uid
+        resource.data.email == request.auth.token.email
       );
 
       // Create: fleet admin only
@@ -226,43 +178,39 @@ service cloud.firestore {
         request.resource.data.invitedBy == request.auth.uid &&
         isFleetAdmin(request.resource.data.fleetId);
 
-      // Update: invitee accepts OR inviter cancels
-      allow update: if isAuthenticated() && (
-        // Invitee accepting
-        ((resource.data.inviteeEmail == request.auth.token.email || 
-          resource.data.inviteeUserId == request.auth.uid) &&
-          request.resource.data.status == 'accepted' &&
-          resource.data.status == 'pending') ||
-        // Inviter canceling
-        (resource.data.invitedBy == request.auth.uid &&
-          request.resource.data.status == 'cancelled')
-      );
-
-      // Delete: inviter only
-      allow delete: if isAuthenticated() && 
+      // Update: typically not used (invites are deleted on accept)
+      allow update: if isAuthenticated() && 
         resource.data.invitedBy == request.auth.uid;
+
+      // Delete: inviter (cancel) OR invitee (accept/decline)
+      allow delete: if isAuthenticated() && (
+        resource.data.invitedBy == request.auth.uid ||
+        resource.data.email == request.auth.token.email
+      );
     }
 
     // ============================================
     // FAMILY MEMBERSHIPS COLLECTION
+    // Fields: id, primaryUserId, memberId, permission, assignedVehicleIds, joinedAt
+    // Query patterns:
+    // 1. where('primaryUserId', '==', uid) - primary user views members
+    // 2. where('memberId', '==', uid) - member views their membership
     // ============================================
     match /familyMemberships/{membershipId} {
-      // Read: primary user or the member
       allow read: if isAuthenticated() && (
         resource.data.primaryUserId == request.auth.uid ||
         resource.data.memberId == request.auth.uid
       );
 
-      // Create: primary user only
-      allow create: if isAuthenticated() && 
-        request.resource.data.primaryUserId == request.auth.uid;
+      allow create: if isAuthenticated() && (
+        request.resource.data.primaryUserId == request.auth.uid ||
+        request.resource.data.memberId == request.auth.uid
+      );
 
-      // Update: primary user only
       allow update: if isAuthenticated() && 
         resource.data.primaryUserId == request.auth.uid &&
         request.resource.data.primaryUserId == resource.data.primaryUserId;
 
-      // Delete: primary user or member leaving
       allow delete: if isAuthenticated() && (
         resource.data.primaryUserId == request.auth.uid ||
         resource.data.memberId == request.auth.uid
@@ -271,32 +219,31 @@ service cloud.firestore {
 
     // ============================================
     // FAMILY INVITES COLLECTION
+    // Fields: id, primaryUserId, email, permission, assignedVehicleIds, createdAt, expiresAt
+    // Query patterns:
+    // 1. where('email', '==', userEmail) - invitee checks their invites
+    // 2. where('primaryUserId', '==', uid) - primary user views sent invites
     // ============================================
     match /familyInvites/{inviteId} {
-      // Read: inviter or invitee
+      // Read: primary user (inviter) OR invitee (matched by email)
       allow read: if isAuthenticated() && (
-        resource.data.invitedBy == request.auth.uid ||
-        resource.data.inviteeEmail == request.auth.token.email ||
-        resource.data.inviteeUserId == request.auth.uid
+        resource.data.primaryUserId == request.auth.uid ||
+        resource.data.email == request.auth.token.email
       );
 
-      // Create: must be from self
+      // Create: primary user only
       allow create: if isAuthenticated() && 
-        request.resource.data.invitedBy == request.auth.uid;
+        request.resource.data.primaryUserId == request.auth.uid;
 
-      // Update: invitee accepts OR inviter cancels
-      allow update: if isAuthenticated() && (
-        ((resource.data.inviteeEmail == request.auth.token.email || 
-          resource.data.inviteeUserId == request.auth.uid) &&
-          request.resource.data.status == 'accepted' &&
-          resource.data.status == 'pending') ||
-        (resource.data.invitedBy == request.auth.uid &&
-          request.resource.data.status == 'cancelled')
+      // Update: primary user only
+      allow update: if isAuthenticated() && 
+        resource.data.primaryUserId == request.auth.uid;
+
+      // Delete: primary user (cancel) OR invitee (accept/decline)
+      allow delete: if isAuthenticated() && (
+        resource.data.primaryUserId == request.auth.uid ||
+        resource.data.email == request.auth.token.email
       );
-
-      // Delete: inviter only
-      allow delete: if isAuthenticated() && 
-        resource.data.invitedBy == request.auth.uid;
     }
   }
 }
