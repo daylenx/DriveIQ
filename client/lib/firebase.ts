@@ -6,14 +6,15 @@ import { getFirestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-const firebaseConfig = {
+const firebaseConfig: Record<string, string | undefined> = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: "driveiq-3ade4.firebaseapp.com",
   projectId: "driveiq-3ade4",
   storageBucket: "driveiq-3ade4.firebasestorage.app",
   messagingSenderId: "932909380820",
   appId: "1:932909380820:web:e9853263f13be1af4ef741",
-  measurementId: "G-E2T4Z2GTMM",
+  // Only include measurementId on web to prevent Analytics auto-init crash on iOS/Android
+  ...(Platform.OS === "web" && { measurementId: "G-E2T4Z2GTMM" }),
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
