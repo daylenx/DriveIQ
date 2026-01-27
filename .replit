@@ -8,7 +8,8 @@ localPort = 8081
 externalPort = 80
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["sh", "-c", "npm run server:prod"]
 deploymentTarget = "cloudrun"
+build = ["sh", "-c", "npm run server:build && npm run expo:static:build"]
 
 
