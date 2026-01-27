@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.daylenhall.driveiq",
+      "buildNumber": "2",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "DriveIQ needs your location to help connect you with nearby roadside assistance when requested.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "DriveIQ needs your location to help connect you with nearby roadside assistance when requested.",
