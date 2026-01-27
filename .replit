@@ -9,7 +9,7 @@ externalPort = 80
 
 [deployment]
 run = ["sh", "-c", "npm run server:prod"]
-deploymentTarget = "cloudrun"
+deploymentTarget = "gce"
 build = ["sh", "-c", "npm run server:build && npm run expo:static:build"]
 
 
